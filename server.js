@@ -6,7 +6,7 @@ const ROOT=__dirname;
 
 app.disable("x-powered-by");
 app.use(express.static(ROOT,{extensions:["html"]}));
-app.get("*",(req,res)=>{
+app.get(/.*/,(req,res)=>{
   if(req.path.startsWith("/api/")) return res.status(404).json({error:"Not found"});
   res.sendFile(path.join(ROOT,"index.html"));
 });
