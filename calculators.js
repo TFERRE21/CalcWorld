@@ -1,0 +1,17 @@
+window.CALCULATORS=[
+{id:"percentage",icon:"%",cat:"math",title:{pt:"Porcentagem",en:"Percentage",es:"Porcentaje"},desc:{pt:"Calcule porcentagens, aumentos e descontos.",en:"Calculate percentages, increases and discounts.",es:"Calcula porcentajes, aumentos y descuentos."}},
+{id:"rule-of-three",icon:"⅓",cat:"math",title:{pt:"Regra de três",en:"Rule of three",es:"Regla de tres"},desc:{pt:"Resolva proporções rapidamente.",en:"Solve proportions quickly.",es:"Resuelve proporciones rápidamente."}},
+{id:"compound-interest",icon:"↗",cat:"finance",title:{pt:"Juros compostos",en:"Compound interest",es:"Interés compuesto"},desc:{pt:"Simule crescimento de um valor ao longo do tempo.",en:"Simulate value growth over time.",es:"Simula el crecimiento de un valor."}},
+{id:"simple-interest",icon:"%",cat:"finance",title:{pt:"Juros simples",en:"Simple interest",es:"Interés simple"},desc:{pt:"Calcule juros e montante.",en:"Calculate interest and total amount.",es:"Calcula interés y monto total."}},
+{id:"discount",icon:"🏷️",cat:"finance",title:{pt:"Desconto",en:"Discount",es:"Descuento"},desc:{pt:"Descubra preço final após desconto.",en:"Find the final price after a discount.",es:"Calcula el precio final con descuento."}},
+{id:"profit-margin",icon:"📈",cat:"business",title:{pt:"Margem de lucro",en:"Profit margin",es:"Margen de beneficio"},desc:{pt:"Calcule margem e lucro sobre vendas.",en:"Calculate sales profit margin.",es:"Calcula margen y beneficio."}},
+{id:"salary",icon:"💼",cat:"work",title:{pt:"Salário líquido",en:"Net salary",es:"Salario neto"},desc:{pt:"Estimativa simples de descontos sobre salário.",en:"Simple salary deduction estimate.",es:"Estimación simple de deducciones salariales."}},
+{id:"vacation",icon:"🏖️",cat:"work",title:{pt:"Férias",en:"Vacation pay",es:"Pago de vacaciones"},desc:{pt:"Estimativa de férias com adicional de 1/3.",en:"Estimate vacation pay with the one-third bonus.",es:"Estima el pago de vacaciones."}},
+{id:"overtime",icon:"⏱️",cat:"work",title:{pt:"Hora extra",en:"Overtime",es:"Horas extra"},desc:{pt:"Calcule o valor aproximado das horas extras.",en:"Estimate overtime pay.",es:"Estima el valor de las horas extra."}},
+{id:"age",icon:"🎂",cat:"date",title:{pt:"Idade",en:"Age",es:"Edad"},desc:{pt:"Calcule sua idade em anos, meses e dias.",en:"Calculate age in years, months and days.",es:"Calcula edad en años, meses y días."}},
+{id:"date-difference",icon:"📅",cat:"date",title:{pt:"Diferença entre datas",en:"Date difference",es:"Diferencia entre fechas"},desc:{pt:"Veja quantos dias existem entre duas datas.",en:"Find the days between two dates.",es:"Calcula días entre dos fechas."}},
+{id:"fuel",icon:"⛽",cat:"daily",title:{pt:"Combustível",en:"Fuel cost",es:"Combustible"},desc:{pt:"Estime consumo e custo de uma viagem.",en:"Estimate trip fuel consumption and cost.",es:"Estima consumo y costo de viaje."}},
+{id:"bmi",icon:"⚖️",cat:"health",title:{pt:"IMC",en:"BMI",es:"IMC"},desc:{pt:"Calcule o índice de massa corporal.",en:"Calculate body mass index.",es:"Calcula el índice de masa corporal."}},
+{id:"age-in-days",icon:"⌛",cat:"date",title:{pt:"Dias de vida",en:"Days alive",es:"Días de vida"},desc:{pt:"Veja aproximadamente quantos dias você viveu.",en:"Estimate how many days you have lived.",es:"Estima cuántos días has vivido."}},
+{id:"unit-converter",icon:"↔",cat:"daily",title:{pt:"Conversor de unidades",en:"Unit converter",es:"Conversor de unidades"},desc:{pt:"Converta comprimento, peso e temperatura.",en:"Convert length, weight and temperature.",es:"Convierte longitud, peso y temperatura."}}
+];
