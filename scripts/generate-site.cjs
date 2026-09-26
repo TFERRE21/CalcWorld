@@ -19,6 +19,29 @@ function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").repl
 function prefix(l){return l==="pt"?"../../":"../../../"}
 function calcUrl(l,slug){return l==="pt"?"/calculadoras/"+slug+"/":l==="en"?"/en/calculators/"+slug+"/":"/es/calculadoras/"+slug+"/"}
 function catUrl(l,cat){const d=localeData[l];return l==="pt"?"/"+d.categoryFolder+"/"+cat+"/":"/"+l+"/"+d.categoryFolder+"/"+cat+"/"}
+function formulaText(c,l){
+ const map={
+ percentage:{pt:"Resultado = valor × taxa ÷ 100",en:"Result = value × rate ÷ 100",es:"Resultado = valor × tasa ÷ 100"},
+ rule3:{pt:"Regra de três: valor procurado = (B × C) ÷ A",en:"Rule of three: result = (B × C) ÷ A",es:"Regla de tres: resultado = (B × C) ÷ A"},
+ average:{pt:"Média = soma dos valores ÷ quantidade de valores",en:"Average = sum of values ÷ number of values",es:"Promedio = suma de valores ÷ cantidad"},
+ sum:{pt:"Soma = valor 1 + valor 2 + ...",en:"Sum = value 1 + value 2 + ...",es:"Suma = valor 1 + valor 2 + ..."},
+ simpleInterest:{pt:"Montante = principal × (1 + taxa × períodos)",en:"Amount = principal × (1 + rate × periods)",es:"Monto = principal × (1 + tasa × períodos)"},
+ compoundInterest:{pt:"Montante = principal × (1 + taxa) ^ períodos",en:"Amount = principal × (1 + rate) ^ periods",es:"Monto = principal × (1 + tasa) ^ períodos"},
+ discount:{pt:"Preço final = preço × (1 − desconto ÷ 100)",en:"Final price = price × (1 − discount ÷ 100)",es:"Precio final = precio × (1 − descuento ÷ 100)"},
+ increase:{pt:"Variação (%) = (novo − antigo) ÷ antigo × 100",en:"Change (%) = (new − old) ÷ old × 100",es:"Variación (%) = (nuevo − anterior) ÷ anterior × 100"},
+ margin:{pt:"Margem = (vendas − custo) ÷ vendas × 100",en:"Margin = (sales − cost) ÷ sales × 100",es:"Margen = (ventas − costo) ÷ ventas × 100"},
+ markup:{pt:"Preço de venda = custo × (1 + markup ÷ 100)",en:"Selling price = cost × (1 + markup ÷ 100)",es:"Precio de venta = costo × (1 + markup ÷ 100)"},
+ commission:{pt:"Comissão = vendas × taxa ÷ 100",en:"Commission = sales × rate ÷ 100",es:"Comisión = ventas × tasa ÷ 100"},
+ bmi:{pt:"IMC = peso ÷ altura²",en:"BMI = weight ÷ height²",es:"IMC = peso ÷ altura²"},
+ speed:{pt:"Velocidade média = distância ÷ tempo",en:"Average speed = distance ÷ time",es:"Velocidad media = distancia ÷ tiempo"},
+ pace:{pt:"Ritmo = tempo ÷ distância",en:"Pace = time ÷ distance",es:"Ritmo = tiempo ÷ distancia"},
+ area:{pt:"Área = largura × comprimento",en:"Area = width × length",es:"Área = ancho × largo"},
+ volume:{pt:"Volume = largura × comprimento × profundidade",en:"Volume = width × length × depth",es:"Volumen = ancho × largo × profundidad"},
+ unitCost:{pt:"Custo unitário = custo total ÷ quantidade",en:"Unit cost = total cost ÷ quantity",es:"Costo unitario = costo total ÷ cantidad"},
+ reorder:{pt:"Ponto de reposição = consumo diário × prazo + estoque de segurança",en:"Reorder point = daily usage × lead time + safety stock",es:"Punto de reposición = consumo diario × plazo + stock de seguridad"}
+ };
+ return map[c.type]?.[l]||"";
+}
 function seoText(c,l){
  const n=esc(c.title[l]);
  if(l==="pt") return "Use a "+n+" para obter um resultado rápido a partir dos dados informados. Confira os campos, revise os valores e use o resultado como referência.";
