@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" role="img" aria-labelledby="title desc">
+<title id="title">CalcWorld</title><desc id="desc">CalcWorld logo with a calculator and globe icon</desc>
+<defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#60a5fa"/><stop offset=".55" stop-color="#2563eb"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
+<g transform="translate(8 8)">
+<circle cx="52" cy="52" r="45" fill="url(#g)"/>
+<path d="M22 47c18-18 43-24 70-15M19 59c22 16 49 19 75 8M51 8c-12 15-18 30-18 45s6 30 18 45M53 8c12 14 19 29 19 45s-7 31-19 45" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".85"/>
+<rect x="31" y="28" width="42" height="48" rx="7" fill="#fff" opacity=".96"/>
+<rect x="38" y="35" width="28" height="9" rx="2" fill="#dbeafe"/>
+<circle cx="41" cy="52" r="3" fill="#2563eb"/><circle cx="52" cy="52" r="3" fill="#2563eb"/><circle cx="63" cy="52" r="3" fill="#2563eb"/>
+<circle cx="41" cy="63" r="3" fill="#2563eb"/><circle cx="52" cy="63" r="3" fill="#2563eb"/><circle cx="63" cy="63" r="3" fill="#2563eb"/>
+</g>
+<text x="118" y="77" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="58" font-weight="800" letter-spacing="-2"><tspan fill="#101828">Calc</tspan><tspan fill="#2563eb">World</tspan></text>
+</svg>
