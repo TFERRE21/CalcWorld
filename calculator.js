@@ -15,7 +15,15 @@ const readFields=()=>Array.from(document.querySelectorAll("#form .field")).map(x
 function renderReport(result){
  const box=document.getElementById("report");if(!box)return;
  const fields=readFields();let detail="",interpretation="",extra="";
- if(c.type==="simpleInterest"||c.type==="compoundInterest"){
+ if(c.type==="netSalary"&&LEGAL?.inss&&LEGAL?.irrf){
+   const gross=n("a"),deps=Math.max(0,Math.floor(n("b"))),other=Math.max(0,n("c"));let base=Math.min(gross,LEGAL.inss.ceiling),inss=0,prev=0;
+   for(const b of LEGAL.inss.brackets){const part=Math.max(0,Math.min(base,b.upTo)-prev);inss+=part*b.rate;prev=b.upTo;if(base<=b.upTo)break}
+   let irBase=Math.max(0,gross-inss-Math.max(LEGAL.irrf.simplifiedDeduction,deps*LEGAL.irrf.dependentDeduction));let br=LEGAL.irrf.brackets.find(x=>irBase<=x.upTo)||LEGAL.irrf.brackets.at(-1);let irrf=Math.max(0,irBase*br.rate-br.deduction);
+   const net=Math.max(0,gross-inss-irrf-other);
+   detail='<div class="report-grid"><div><span>Salário bruto</span><strong>'+reportMoney(gross)+'</strong></div><div><span>INSS</span><strong>− '+reportMoney(inss)+'</strong></div><div><span>IRRF</span><strong>− '+reportMoney(irrf)+'</strong></div><div><span>'+reportLabel("net")+'</span><strong>'+reportMoney(net)+'</strong></div></div><p><b>Dependentes:</b> '+deps+' &nbsp; <b>Outros descontos:</b> '+reportMoney(other)+'</p><p><b>Base IRRF:</b> '+reportMoney(irBase)+'</p>';
+   interpretation="O salário líquido é o bruto menos os descontos calculados. As tabelas legais são carregadas do arquivo de regras do CalcWorld e devem ser mantidas atualizadas.";
+   extra='<div class="report-note"><b>Nota:</b> benefícios, pensão, plano de saúde, sindicato, empréstimos e outras verbas podem alterar o contracheque real.</div>';
+ } else if(c.type==="simpleInterest"||c.type==="compoundInterest"){
    const p=n("a"),rate=n("b")/100,periods=n("c"),total=c.type==="simpleInterest"?p*(1+rate*periods):p*Math.pow(1+rate,periods),interest=total-p;
    detail='<div class="report-grid"><div><span>'+reportLabel("principal")+'</span><strong>'+reportMoney(p)+'</strong></div><div><span>'+reportLabel("interest")+'</span><strong>'+reportMoney(interest)+'</strong></div><div><span>'+reportLabel("total")+'</span><strong>'+reportMoney(total)+'</strong></div></div><p><b>Fórmula:</b> '+formulaText[c.type]+'</p>';
    interpretation=(c.type==="simpleInterest"?"Os juros são calculados sobre o principal original em cada período.":"Os juros são incorporados ao saldo e passam a gerar novos juros nos períodos seguintes.")+" Taxa informada: "+reportNum(rate*100)+"% por período.";
