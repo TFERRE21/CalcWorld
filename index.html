@@ -25,7 +25,7 @@
 <div class="eyebrow">SIMPLE <span>•</span> FAST <span>•</span> FREE <span>•</span> GLOBAL</div>
 <h1 data-t="heroTitle">Free calculators <br>for <span>real life.</span></h1>
 <p data-t="heroText">Calculate percentages, loans, salaries, fuel, dates, health, business and more — instantly and for free.</p>
-<div class="search"><span aria-hidden="true">⌕</span><input id="search" data-placeholder="search" placeholder="What do you want to calculate?"><button id="searchBtn" aria-label="Search">Search <b>→</b></button></div>
+<div class="search"><span aria-hidden="true">⌕</span><input id="search" data-placeholder="search" placeholder="What do you want to calculate?"><button id="searchBtn" aria-label="Search" data-t="searchBtn">Buscar <b>→</b></button></div>
 <div class="quick-label" data-t="popularLabel">Popular:</div>
 <div class="quick">
 <a id="q1" href="en/calculators/porcentagem/">Percentage</a><a id="q2" href="en/calculators/salario-liquido/">Salary</a><a id="q3" href="en/calculators/loan/">Loan</a><a id="q4" href="en/calculators/combustivel/">Fuel</a><a id="q5" href="en/calculators/bmi/">BMI</a><a id="q6" href="en/calculators/juros-compostos/">Interest</a><a id="q7" href="en/calculators/date-diff/">Date</a>
@@ -33,17 +33,17 @@
 </div>
 <div class="hero-art" aria-hidden="true">
 <div class="globe"></div><div class="float-icon icon-percent">%</div><div class="float-icon icon-chart">↗</div><div class="float-icon icon-car">⌁</div><div class="float-icon icon-heart">♥</div>
-<div class="calculator-art"><div class="calc-screen">Calculate<br><strong>easier.</strong></div><div class="calc-keys"><i>7</i><i>8</i><i>9</i><i class="op">%</i><i>4</i><i>5</i><i>6</i><i class="op">×</i><i>1</i><i>2</i><i>3</i><i class="op">÷</i><i>0</i><i>.</i><i>+</i><i class="equal">=</i></div></div>
-<div class="hero-badge">100+ <span>free calculators</span></div>
+<div class="calculator-art"><div class="calc-screen"><span data-t="artCalculate">Calcule</span><br><strong data-t="artEasier">com facilidade.</strong></div><div class="calc-keys"><i>7</i><i>8</i><i>9</i><i class="op">%</i><i>4</i><i>5</i><i>6</i><i class="op">×</i><i>1</i><i>2</i><i>3</i><i class="op">÷</i><i>0</i><i>.</i><i>+</i><i class="equal">=</i></div></div>
+<div class="hero-badge">100+ <span data-t="artBadge">calculadoras grátis</span></div>
 </div>
 </div>
 </section>
 
 <section class="trust wrap">
-<div><strong>⚡ 100+ calculators</strong><span data-t="trustFree">Free to use</span></div><div><strong>🛡 No registration</strong><span data-t="trustNoSignup">No complicated forms</span></div><div><strong>🌐 Works everywhere</strong><span data-t="trustDevice">Mobile, tablet and desktop</span></div><div><strong>✦ Always free</strong><span data-t="trustAlways">No subscription required</span></div>
+<div><strong data-t="trustCalc">⚡ 100+ calculadoras</strong><span data-t="trustFree">Free to use</span></div><div><strong data-t="trustSignup">🛡 Sem cadastro</strong><span data-t="trustNoSignup">No complicated forms</span></div><div><strong data-t="trustWorks">🌐 Funciona em qualquer lugar</strong><span data-t="trustDevice">Mobile, tablet and desktop</span></div><div><strong data-t="trustFreeAlways">✦ Sempre grátis</strong><span data-t="trustAlways">No subscription required</span></div>
 </section>
 
-<div class="ad-slot">Advertising space</div>
+<div class="ad-slot" data-t="adSpace">Espaço publicitário</div>
 
 <section class="wrap instant" id="instant">
   <div class="instant-head">
@@ -122,7 +122,7 @@
 </section>
 
 <section id="categorias" class="wrap section categories">
-<div class="section-title"><div><div class="eyebrow">EXPLORE</div><h2 data-t="categoryTitle">Browse by category</h2></div><a class="text-link" href="#calculadoras" data-t="viewAll">View all →</a></div>
+<div class="section-title"><div><div class="eyebrow" data-t="exploreEyebrow">EXPLORAR</div><h2 data-t="categoryTitle">Browse by category</h2></div><a class="text-link" href="#calculadoras" data-t="viewAll">View all →</a></div>
 <div id="categoryLinks" class="category-grid"></div>
 </section>
 
@@ -131,12 +131,12 @@
 </section>
 
 <section class="wrap section" id="populares">
-<div class="section-title"><div><div class="eyebrow">FEATURED</div><h2 data-t="popularTitle">Popular calculators</h2></div></div>
-<div class="grid"><a class="card featured-card" href="en/calculators/percentage/"><div class="icon">%</div><h3 data-t="p1t">Percentage</h3><p data-t="p1d">Calculate percentages in seconds.</p></a><a class="card featured-card" href="en/calculators/net-salary/"><div class="icon">▣</div><h3 data-t="p2t">Net salary</h3><p data-t="p2d">Estimate take-home pay from gross salary.</p></a><a class="card featured-card" href="en/calculators/compound-interest/"><div class="icon">↗</div><h3 data-t="p3t">Compound interest</h3><p data-t="p3d">Simulate compound growth.</p></a><a class="card featured-card" href="en/calculators/fuel/"><div class="icon">⌁</div><h3 data-t="p4t">Fuel cost</h3><p data-t="p4d">Estimate the cost of your trip.</p></a></div>
+<div class="section-title"><div><div class="eyebrow" data-t="featuredEyebrow">DESTAQUES</div><h2 data-t="popularTitle">Popular calculators</h2></div></div>
+<div class="grid"><button class="card featured-card inline-card" data-inline-id="porcentagem"><div class="icon">%</div><h3 data-t="p1t">Porcentagem</h3><p data-t="p1d">Calcule porcentagens em segundos.</p></button><button class="card featured-card inline-card" data-inline-id="salario-liquido"><div class="icon">▣</div><h3 data-t="p2t">Salário líquido</h3><p data-t="p2d">Estime o salário líquido a partir do bruto.</p></button><button class="card featured-card inline-card" data-inline-id="juros-compostos"><div class="icon">↗</div><h3 data-t="p3t">Juros compostos</h3><p data-t="p3d">Simule crescimento com juros compostos.</p></button><button class="card featured-card inline-card" data-inline-id="combustivel"><div class="icon">⌁</div><h3 data-t="p4t">Custo de combustível</h3><p data-t="p4d">Estime o custo da sua viagem.</p></button></div>
 </section>
 
 <section class="wrap section faq" id="faq">
-<div class="section-title"><div><div class="eyebrow">FAQ</div><h2 data-t="faqTitle">Frequently asked questions</h2></div></div>
+<div class="section-title"><div><div class="eyebrow" data-t="faqEyebrow">DÚVIDAS</div><h2 data-t="faqTitle">Frequently asked questions</h2></div></div>
 <details><summary data-t="faq1q">Are the calculators free?</summary><p data-t="faq1a">Yes. CalcWorld provides free tools and may be supported by advertising.</p></details>
 <details><summary data-t="faq2q">Do I need an account?</summary><p data-t="faq2a">No. Basic calculators can be used without registration.</p></details>
 <details><summary data-t="faq3q">Are the results official?</summary><p data-t="faq3a">No. Results are informational. Check official sources for legal, tax, employment, financial or health decisions.</p></details>
