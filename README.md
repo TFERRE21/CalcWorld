@@ -46,6 +46,12 @@ Antes do lançamento:
 - Workflow GitHub Pages com Node 20.
 - Estrutura preparada para crescimento internacional.
 
+## V4 — estrutura de crescimento
+- Navegação de calculadoras relacionadas por categoria.
+- Arquitetura centralizada para adicionar novas ferramentas sem duplicar código.
+- Gerador multilíngue preparado para expansão de conteúdo.
+- SEO técnico mantido no processo de deploy.
+
 ## Próxima expansão
 - 100+ calculadoras.
 - páginas internacionais específicas por país.
