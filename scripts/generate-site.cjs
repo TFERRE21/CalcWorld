@@ -79,7 +79,7 @@ for(const cat of Object.keys(categoryNames)) for(const l of ["pt","en","es"]){
  const d=localeData[l],dir=l==="pt"?path.join(root,d.categoryFolder,cat):path.join(root,l,d.categoryFolder,cat);
  fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,"index.html"),categoryPage(cat,l));
 }
-const urls=[site+"/",site+"/privacy.html",site+"/terms.html"];
+const urls=[site+"/",site+"/privacy.html",site+"/terms.html",site+"/robots.txt",site+"/ads.txt"];
 for(const c of calculators) for(const l of ["pt","en","es"]) urls.push(site+calcUrl(l,c.slug));
 for(const cat of Object.keys(categoryNames)) for(const l of ["pt","en","es"]) urls.push(site+catUrl(l,cat));
 const xml='<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+urls.map(u=>'<url><loc>'+u+'</loc></url>').join("")+'</urlset>';
