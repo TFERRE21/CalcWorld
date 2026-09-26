@@ -1,17 +1,43 @@
 # CalcWorld 🌎
 
-Free calculators for everyday life, work, money, math and planning.
+Portal de calculadoras gratuitas, preparado para tráfego orgânico, publicidade e expansão internacional.
 
-## MVP
-- Responsive web app
-- Portuguese, English and Spanish interface
-- 15 calculators
-- SEO-ready pages and metadata
-- AdSense-ready ad slots
-- No account or subscription required
+## V2 entregue
+- 48 calculadoras/ferramentas no catálogo.
+- URLs próprias em `/calculadoras/<slug>/`.
+- Meta title, description, canonical e Open Graph nas páginas.
+- Schema.org `WebApplication` por calculadora.
+- Sitemap com as páginas das calculadoras.
+- robots.txt e ads.txt.
+- PT-BR, EN e ES na interface principal.
+- Busca e filtros por categoria.
+- Layout responsivo.
+- Página 404 e web manifest.
+- Espaços reservados para publicidade.
+- Calculadoras processadas no navegador no MVP/V2.
+- Workflow pronto para GitHub Pages.
 
-## Run locally
-Open index.html in a browser, or serve the folder with any static web server.
+## Categorias
+Matemática, finanças, trabalho, negócios, dia a dia, datas e saúde.
 
-## Roadmap
-Expand to 100+ calculators, add country-specific financial calculators, structured data per calculator, analytics and multilingual SEO landing pages.
+## Monetização
+O projeto está preparado para publicidade. Antes de ativar AdSense, substitua o conteúdo de `ads.txt` pela linha fornecida pelo Google, configure consentimento/cookies conforme os mercados atendidos e revise as páginas legais com os dados reais do proprietário.
+
+## SEO
+Antes do lançamento:
+1. Defina o domínio oficial e substitua `https://calcworld.com/` nos canonicals, sitemap e manifest quando necessário.
+2. Publique o site.
+3. Cadastre o domínio no Google Search Console.
+4. Envie `sitemap.xml`.
+5. Adicione o código de verificação/analytics se desejar.
+6. Não publique números de publisher do AdSense até a conta ser aprovada e fornecer a linha oficial de ads.txt.
+
+## Desenvolvimento
+É um site estático: HTML, CSS e JavaScript. Pode ser hospedado no GitHub Pages ou em qualquer hospedagem estática.
+
+## Próxima expansão
+- 100+ calculadoras.
+- páginas internacionais específicas por país.
+- dados de câmbio por API quando necessário.
+- calculadoras legais/fiscais com versões por jurisdição e data de vigência.
+- melhorias de Core Web Vitals, acessibilidade e dados estruturados.
