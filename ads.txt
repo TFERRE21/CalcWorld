@@ -1,2 +1,1 @@
-# Add your Google AdSense publisher record here after approval.
-# Example: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+# After AdSense approval, replace this comment with the publisher line supplied by Google.
