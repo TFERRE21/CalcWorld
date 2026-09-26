@@ -27,6 +27,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Validate calculator catalog
+        run: node scripts/validate-site.cjs
       - name: Generate multilingual calculator pages
         run: node scripts/generate-site.cjs
       - name: Setup Pages
