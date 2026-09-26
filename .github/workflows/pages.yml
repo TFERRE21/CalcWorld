@@ -27,6 +27,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Check official legislation sources
+        run: node scripts/update-legal-rules.cjs
+      - name: Commit legal data if changed
+        run: |
+          if git diff --quiet; then
+            echo "No legal-data changes."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add legal-rules.json
+            git commit -m "chore: update official legal data"
+            git push
+          fi
       - name: Validate calculator catalog
         run: node scripts/validate-site.cjs
       - name: Generate multilingual calculator pages
