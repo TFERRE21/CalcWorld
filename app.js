@@ -6,6 +6,57 @@ function updateQuick(l){const items=l==="en"?[["Percentage","porcentagem"],["Sal
 function cats(){const el=document.getElementById("categories");el.innerHTML=Object.entries(C).map(([k,v])=>'<button class="chip '+(cat===k?"active":"")+'" data-c="'+k+'">'+v[L()]+'</button>').join("");el.querySelectorAll("button").forEach(b=>b.onclick=()=>{cat=b.dataset.c;cats();render()})}
 function basePath(l){return l==="pt"?"calculadoras/":l==="en"?"en/calculators/":"es/calculadoras/"}
 function render(){const l=L(),q=document.getElementById("search").value.trim().toLowerCase(),arr=CALCULATORS.filter(x=>(cat==="all"||x.cat===cat)&&(!q||(x.title[l]+" "+x.desc[l]).toLowerCase().includes(q)));document.getElementById("grid").innerHTML=arr.map(x=>'<a class="card" href="'+basePath(l)+x.slug+'/"><div class="icon">'+x.icon+'</div><h3>'+x.title[l]+'</h3><p>'+x.desc[l]+'</p><span class="tag">'+C[x.cat][l]+'</span></a>').join("");document.getElementById("count").textContent=arr.length+" / "+CALCULATORS.length;document.getElementById("total").textContent=CALCULATORS.length+"+";document.getElementById("empty").classList.toggle("hidden",arr.length>0)}
+const QUICK={
+  netSalary:{icon:"💼",title:{en:"Net salary",pt:"Salário líquido",es:"Salario neto"},desc:{en:"Estimate your take-home pay.",pt:"Estime quanto vai receber.",es:"Estima cuánto recibirás."},fields:[["salary","Gross salary","3500"],["dependents","Dependents","0"],["deduction","Other deductions","0"]]},
+  termination:{icon:"📄",title:{en:"Termination",pt:"Rescisão",es:"Liquidación"},desc:{en:"Estimate a termination amount.",pt:"Estime uma rescisão.",es:"Estima una liquidación."},fields:[["salary","Last salary","3500"],["months","Months worked","12"],["fgts","FGTS balance","5000"]]},
+  vacation:{icon:"🏖️",title:{en:"Vacation pay",pt:"Férias",es:"Vacaciones"},desc:{en:"Estimate vacation pay.",pt:"Estime o valor das férias.",es:"Estima el pago de vacaciones."},fields:[["salary","Salary","3500"]]},
+  thirteenth:{icon:"🎁",title:{en:"13th salary",pt:"13º salário",es:"13.º salario"},desc:{en:"Estimate proportional 13th salary.",pt:"Estime o 13º proporcional.",es:"Estima el 13.º proporcional."},fields:[["salary","Salary","3500"],["months","Months","12"]]},
+  fuel:{icon:"⛽",title:{en:"Fuel cost",pt:"Combustível",es:"Combustible"},desc:{en:"Estimate trip fuel cost.",pt:"Estime o custo da viagem.",es:"Estima el costo del viaje."},fields:[["distance","Distance (km)","300"],["consumption","Consumption (km/l)","12"],["fuel","Fuel price","6"]]},
+  bmi:{icon:"⚖️",title:{en:"BMI",pt:"IMC",es:"IMC"},desc:{en:"Calculate body mass index.",pt:"Calcule seu índice de massa corporal.",es:"Calcula tu índice de masa corporal."},fields:[["weight","Weight (kg)","80"],["height","Height (m)","1.75"]]},
+  percentage:{icon:"%",title:{en:"Percentage",pt:"Porcentagem",es:"Porcentaje"},desc:{en:"Find a percentage of a value.",pt:"Calcule uma porcentagem.",es:"Calcula un porcentaje."},fields:[["value","Value","100"],["rate","Percent (%)","15"]]}
+};
+let quickType="netSalary",quickLegal=null;
+fetch("legal-rules.json").then(r=>r.ok?r.json():null).then(r=>quickLegal=r).catch(()=>{});
+const quickLabels={
+  en:{calculate:"Calculate",gross:"Gross salary",salary:"Salary",dependents:"Dependents",deduction:"Other deductions",lastSalary:"Last salary",months:"Months worked",fgts:"FGTS balance",distance:"Distance (km)",consumption:"Consumption (km/l)",fuel:"Fuel price",weight:"Weight (kg)",height:"Height (m)",value:"Value",rate:"Percent (%)",result:"Estimated result",hint:"Enter your values and calculate.",estimate:"Estimate"},
+  pt:{calculate:"Calcular",gross:"Salário bruto",salary:"Salário",dependents:"Dependentes",deduction:"Outros descontos",lastSalary:"Último salário",months:"Meses trabalhados",fgts:"Saldo de FGTS",distance:"Distância (km)",consumption:"Consumo (km/l)",fuel:"Preço do combustível",weight:"Peso (kg)",height:"Altura (m)",value:"Valor",rate:"Porcentagem (%)",result:"Resultado estimado",hint:"Preencha os valores e clique em calcular.",estimate:"Estimativa"},
+  es:{calculate:"Calcular",gross:"Salario bruto",salary:"Salario",dependents:"Dependientes",deduction:"Otras deducciones",lastSalary:"Último salario",months:"Meses trabajados",fgts:"Saldo de FGTS",distance:"Distancia (km)",consumption:"Consumo (km/l)",fuel:"Precio del combustible",weight:"Peso (kg)",height:"Altura (m)",value:"Valor",rate:"Porcentaje (%)",result:"Resultado estimado",hint:"Completa los valores y calcula.",estimate:"Estimación"}
+};
+function ql(){return quickLabels[L()]}
+function quickFieldLabel(key){const t=ql();return ({salary:t.salary,dependents:t.dependents,deduction:t.deduction,months:t.months,fgts:t.fgts,distance:t.distance,consumption:t.consumption,fuel:t.fuel,weight:t.weight,height:t.height,value:t.value,rate:t.rate})[key]||key}
+function renderQuick(){
+  const l=L(), t=ql(), toolWrap=document.getElementById("instantTools"), form=document.getElementById("instantForm");
+  if(!toolWrap||!form)return;
+  toolWrap.innerHTML=Object.entries(QUICK).map(([k,v])=>'<button class="instant-tool '+(k===quickType?"active":"")+'" data-q="'+k+'"><span>'+v.icon+'</span><strong>'+v.title[l]+'</strong><small>'+v.desc[l]+'</small></button>').join("");
+  toolWrap.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{quickType=b.dataset.q;renderQuick()});
+  const q=QUICK[quickType];
+  form.innerHTML='<div class="instant-fields">'+q.fields.map(([key,label,val])=>'<div class="field"><label>'+quickFieldLabel(key)+'</label><input id="q_'+key+'" type="number" inputmode="decimal" step="any" value="'+val+'"></div>').join("")+'</div><button class="btn instant-btn" id="quickGo">'+t.calculate+' <span>→</span></button>';
+  document.getElementById("quickGo").onclick=calculateQuick;
+}
+function qn(k){return Number(document.getElementById("q_"+k)?.value)||0}
+function qMoney(v){return v.toLocaleString(lang,{style:"currency",currency:L()==="pt"?"BRL":"USD"})}
+function calculateQuick(){
+  const t=ql(); let value=0, detail="";
+  if(quickType==="netSalary"){
+    const gross=qn("salary"),deps=Math.max(0,Math.floor(qn("dependents"))),other=Math.max(0,qn("deduction"));
+    if(quickLegal?.inss&&quickLegal?.irrf){
+      let base=Math.min(gross,quickLegal.inss.ceiling),inss=0,prev=0;
+      for(const b of quickLegal.inss.brackets){const part=Math.max(0,Math.min(base,b.upTo)-prev);inss+=part*b.rate;prev=b.upTo;if(base<=b.upTo)break}
+      let irBase=Math.max(0,gross-inss-Math.max(quickLegal.irrf.simplifiedDeduction,deps*quickLegal.irrf.dependentDeduction));
+      const br=quickLegal.irrf.brackets.find(x=>irBase<=x.upTo)||quickLegal.irrf.brackets.at(-1);
+      let irrf=Math.max(0,irBase*br.rate-br.deduction);
+      if(quickLegal.irrf.reduction){if(gross<=quickLegal.irrf.reduction.upTo)irrf=Math.max(0,irrf-Math.min(irrf,quickLegal.irrf.reduction.max));else if(gross>=quickLegal.irrf.reduction.to)irrf=Math.max(0,irrf-(quickLegal.irrf.reduction.formulaA-quickLegal.irrf.reduction.formulaB*gross))}
+      value=gross-inss-irrf-other;detail="INSS "+qMoney(inss)+" • IRRF "+qMoney(irrf);
+    }else value=gross-other;
+  }else if(quickType==="termination"){value=qn("salary")/12*qn("months")+qn("fgts")*.4;detail=L()==="pt"?"Estimativa simplificada":"Simplified estimate"}
+  else if(quickType==="vacation"){value=qn("salary")*4/3}
+  else if(quickType==="thirteenth"){value=qn("salary")*Math.min(12,qn("months"))/12}
+  else if(quickType==="fuel"){value=qn("distance")/qn("consumption")*qn("fuel");}
+  else if(quickType==="bmi"){value=qn("weight")/(qn("height")**2);detail=value<18.5?"Underweight":value<25?"Normal range":value<30?"Overweight":"Obesity"}
+  else if(quickType==="percentage"){value=qn("value")*qn("rate")/100}
+  const formatted=quickType==="bmi"?value.toLocaleString(lang,{maximumFractionDigits:2}):qMoney(value);
+  const box=document.getElementById("instantResult");box.innerHTML='<span class="result-kicker">'+t.result+'</span><strong>'+formatted+'</strong><p>'+(detail||t.hint)+'</p>';
+}
 function categoryPath(l,k){return l==="pt"?"categoria/"+k+"/":l==="en"?"en/category/"+k+"/":"es/categoria/"+k+"/"}
 function categoryLinks(){const l=L();document.getElementById("categoryLinks").innerHTML=Object.entries(C).filter(x=>x[0]!=="all").map(([k,v])=>'<a class="category-card" href="'+categoryPath(l,k)+'"><strong>'+v[l]+'</strong><span>'+CALCULATORS.filter(c=>c.cat===k).length+" "+(l==="en"?"tools":l==="pt"?"ferramentas":"herramientas")+"</span></a>").join("")}
-document.getElementById("lang").value=lang;document.getElementById("lang").onchange=e=>{lang=e.target.value;localStorage.setItem("cw-lang",lang);text();cats();categoryLinks();render()};document.getElementById("search").oninput=render;document.getElementById("searchBtn").onclick=()=>document.getElementById("calculadoras").scrollIntoView({behavior:"smooth"});document.getElementById("year").textContent=new Date().getFullYear();text();cats();categoryLinks();render();
+document.getElementById("lang").value=lang;document.getElementById("lang").onchange=e=>{lang=e.target.value;localStorage.setItem("cw-lang",lang);text();cats();categoryLinks();render()};document.getElementById("search").oninput=render;document.getElementById("searchBtn").onclick=()=>document.getElementById("calculadoras").scrollIntoView({behavior:"smooth"});document.getElementById("year").textContent=new Date().getFullYear();text();cats();categoryLinks();render();renderQuick();
