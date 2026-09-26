@@ -35,6 +35,17 @@ Antes do lançamento:
 ## Desenvolvimento
 É um site estático: HTML, CSS e JavaScript. Pode ser hospedado no GitHub Pages ou em qualquer hospedagem estática.
 
+## V3 entregue
+- 100 calculadoras/ferramentas no catálogo.
+- Gerador automático de páginas SEO para as 100 ferramentas.
+- 3 versões de idioma: PT-BR, EN e ES.
+- 300 páginas de calculadoras geradas no deploy.
+- Canonical e hreflang por idioma.
+- Sitemap gerado automaticamente a cada deploy.
+- Dados estruturados WebApplication e FAQ.
+- Workflow GitHub Pages com Node 20.
+- Estrutura preparada para crescimento internacional.
+
 ## Próxima expansão
 - 100+ calculadoras.
 - páginas internacionais específicas por país.
