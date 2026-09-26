@@ -1,6 +1,6 @@
 {
   "version": "2026.09",
-  "updatedAt": "2026-09-26T19:55:39.705Z",
+  "updatedAt": "2026-09-26T19:56:01.274Z",
   "sources": [
     {
       "name": "INSS — tabela de contribuição mensal",
@@ -80,6 +80,6 @@
   "sourceCheck": {
     "inssChecked": true,
     "irrfChecked": true,
-    "checkedAt": "2026-09-26T19:55:39.705Z"
+    "checkedAt": "2026-09-26T19:56:01.274Z"
   }
 }
