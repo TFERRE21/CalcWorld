@@ -1,12 +1,14 @@
 name: Deploy CalcWorld to GitHub Pages
 
 on:
+  schedule:
+    - cron: "17 6 * * 1"
   push:
     branches: ["main"]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
