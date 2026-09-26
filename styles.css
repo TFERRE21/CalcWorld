@@ -75,3 +75,6 @@ html[data-theme="dark"] .union-panel{background:#081a39}
 html[data-theme="dark"] .ad-slot{background:#0f1929;border-color:var(--line);color:#687a94}
 html[data-theme="dark"] .footer{background:#080e18;border-color:var(--line)}
 @media(max-width:700px){.nav{gap:10px}.nav nav{display:none}.nav-actions{margin-left:auto}.brand img{width:155px}.theme-toggle{width:40px;height:40px}}
+
+.theme-toggle{min-width:92px;height:42px;padding:0 13px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:850}.theme-icon{font-size:20px;line-height:1}.theme-text{line-height:1}
+@media(max-width:700px){.theme-toggle{min-width:48px;width:48px;padding:0}.theme-text{display:none}}
