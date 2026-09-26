@@ -58,3 +58,13 @@ Antes do lançamento:
 - dados de câmbio por API quando necessário.
 - calculadoras legais/fiscais com versões por jurisdição e data de vigência.
 - melhorias de Core Web Vitals, acessibilidade e dados estruturados.
+
+
+## V5 — SEO e arquitetura de crescimento
+- Páginas individuais com breadcrumbs e calculadoras relacionadas em HTML.
+- Landing pages por categoria em PT-BR, EN e ES.
+- Sitemap ampliado automaticamente para calculadoras + categorias + páginas institucionais.
+- Links da homepage respeitam o idioma selecionado.
+- Validação automática do catálogo antes do deploy.
+- Verificação de IDs, slugs, metadados PT/EN/ES e tipos de calculadora.
+- Conversor genérico de unidades implementado.
