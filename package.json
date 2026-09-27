@@ -1,6 +1,6 @@
 {
   "name": "calcworld",
-  "version": "5.3.1",
+  "version": "7.0.0",
   "private": true,
   "description": "CalcWorld multilingual calculator portal",
   "main": "server.js",
