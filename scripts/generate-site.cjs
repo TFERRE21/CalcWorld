@@ -8,7 +8,7 @@ vm.createContext(sandbox);
 vm.runInContext(source,sandbox);
 const calculators=sandbox.window.CALCULATORS||[];
 if(!calculators.length) throw new Error("No calculators found");
-const site="https://calcworld.com";
+const site="https://calcworld.com.br";
 const categoryNames={math:{pt:"Matemática",en:"Math",es:"Matemáticas"},finance:{pt:"Finanças",en:"Finance",es:"Finanzas"},work:{pt:"Trabalho",en:"Work",es:"Trabajo"},business:{pt:"Negócios",en:"Business",es:"Negocios"},daily:{pt:"Dia a dia",en:"Everyday",es:"Día a día"},date:{pt:"Datas",en:"Dates",es:"Fechas"},health:{pt:"Saúde",en:"Health",es:"Salud"}};
 const localeData={
 pt:{folder:"calculadoras",categoryFolder:"categoria",lang:"pt-BR",back:"Voltar",home:"Início",how:"Como usar",howText:"Informe os valores solicitados e clique em calcular. O resultado aparece no navegador.",important:"Importante",importantText:"Esta ferramenta é informativa. Em cálculos trabalhistas, fiscais, financeiros ou de saúde, confirme as regras aplicáveis.",related:"Você também pode gostar",ad:"Espaço para publicidade",categoryIntro:"Encontre calculadoras e ferramentas desta categoria."},
