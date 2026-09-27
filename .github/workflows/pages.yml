@@ -44,7 +44,9 @@ jobs:
           fi
       - name: Validate calculator catalog
         run: node scripts/validate-site.cjs
-      - name: Generate multilingual calculator pages
+      - name: Remove deprecated Spanish generated pages
+        run: rm -rf es
+      - name: Generate PT and English calculator pages
         run: node scripts/generate-site.cjs
       - name: Commit generated pages for external hosting
         run: |
