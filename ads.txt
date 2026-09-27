@@ -1,1 +1,1 @@
-# After AdSense approval, replace this comment with the publisher line supplied by Google.
+google.com, pub-6472882150880001, DIRECT, f08c47fec0942fa0
