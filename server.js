@@ -19,11 +19,10 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.get("*", (req, res) => {
+app.use((req, res) => {
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({ error: "Not found" });
   }
-
   return res.status(404).send("Page not found");
 });
 
