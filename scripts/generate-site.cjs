@@ -9,7 +9,8 @@ vm.runInContext(source,sandbox);
 const calculators=sandbox.window.CALCULATORS||[];
 if(!calculators.length) throw new Error("No calculators found");
 const site="https://calcworld.com.br";
-const categoryNames={math:{pt:"Matemática",en:"Math",es:"Matemáticas"},finance:{pt:"Finanças",en:"Finance",es:"Finanzas"},work:{pt:"Trabalho",en:"Work",es:"Trabajo"},business:{pt:"Negócios",en:"Business",es:"Negocios"},daily:{pt:"Dia a dia",en:"Everyday",es:"Día a día"},date:{pt:"Datas",en:"Dates",es:"Fechas"},health:{pt:"Saúde",en:"Health",es:"Salud"}};
+const buildDate=new Date().toISOString().slice(0,10);
+const categoryNames={math:{pt:"Matemática",en:"Math"},finance:{pt:"Finanças",en:"Finance"},work:{pt:"Trabalho",en:"Work"},business:{pt:"Negócios",en:"Business"},daily:{pt:"Dia a dia",en:"Everyday"},date:{pt:"Datas",en:"Dates"},health:{pt:"Saúde",en:"Health"}};
 const localeData={
 pt:{folder:"calculadoras",categoryFolder:"categoria",lang:"pt-BR",back:"Voltar",home:"Início",how:"Como usar",howText:"Informe os valores solicitados e clique em calcular. O resultado aparece no navegador.",important:"Importante",importantText:"Esta ferramenta é informativa. Em cálculos trabalhistas, fiscais, financeiros ou de saúde, confirme as regras aplicáveis.",related:"Você também pode gostar",ad:"Espaço para publicidade",categoryIntro:"Encontre calculadoras e ferramentas desta categoria."},
 en:{folder:"calculators",categoryFolder:"category",lang:"en",back:"Back",home:"Home",how:"How to use",howText:"Enter the requested values and click calculate. The result appears in your browser.",important:"Important",importantText:"This tool is informational. Verify applicable rules for legal, financial, tax or health calculations.",related:"Related calculators",ad:"Advertising space",categoryIntro:"Find calculators and tools in this category."},
@@ -17,7 +18,7 @@ es:{folder:"calculadoras",categoryFolder:"categoria",lang:"es",back:"Volver",hom
 };
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function prefix(l){return l==="pt"?"../../":"../../../"}
-function calcUrl(l,slug){return l==="pt"?"/calculadoras/"+slug+"/":l==="en"?"/en/calculators/"+slug+"/":"/es/calculadoras/"+slug+"/"}
+function calcUrl(l,slug){return l==="pt"?"/calculadoras/"+slug+"/":"/en/calculators/"+slug+"/"}
 function catUrl(l,cat){const d=localeData[l];return l==="pt"?"/"+d.categoryFolder+"/"+cat+"/":"/"+l+"/"+d.categoryFolder+"/"+cat+"/"}
 function formulaText(c,l){
  const map={
@@ -84,4 +85,4 @@ for(const c of calculators) for(const l of ["pt","en"]) urls.push(site+calcUrl(l
 for(const cat of Object.keys(categoryNames)) for(const l of ["pt","en"]) urls.push(site+catUrl(l,cat));
 const xml='<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+urls.map(u=>'<url><loc>'+u+'</loc></url>').join("")+'</urlset>';
 fs.writeFileSync(path.join(root,"sitemap.xml"),xml);
-console.log("Generated "+calculators.length+" calculators x 3 locales + "+Object.keys(categoryNames).length+" categories x 3 locales.");
+console.log("Generated "+calculators.length+" calculators x 2 locales + "+Object.keys(categoryNames).length+" categories x 2 locales.");
