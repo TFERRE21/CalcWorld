@@ -105,7 +105,7 @@
       presetList(currentType(),b.dataset.symbol);
       loadAll();
     });
-    if(rows.length) $("assetPresets").innerHTML=rows.map(x=>'<button type="button" data-symbol="'+esc(x[0])+" data-name=\""+esc(x[1])+" data-exchange=\""+esc(x[2])+"\"><strong>"+esc(x[0])+"</strong><span>"+esc(x[1])+" • "+esc(x[2]||"mercado")+"</span></button>').join("");
+    if(rows.length) $("assetPresets").innerHTML=rows.map(x=>'<button type="button" data-symbol="'+esc(x[0])+'" data-name="'+esc(x[1])+'" data-exchange="'+esc(x[2])+'"><strong>'+esc(x[0])+'</strong><span>'+esc(x[1])+' • '+esc(x[2]||"mercado")+'</span></button>').join("");
     $("assetPresets").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("symbol").value=b.dataset.symbol; $("exchange").value=b.dataset.exchange==="CRYPTO"?"":b.dataset.exchange; $("symbolSuggestions").innerHTML=""; loadAll(); });
   }
 
