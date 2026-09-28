@@ -381,10 +381,10 @@ app.get("/api/market/catalog", async (req, res) => {
         source = "brapi.dev / Banco Central";
       } catch {}
     } else {
-      const subtype = type === "fii" ? "fii" : type === "fund" ? "etf" : "stock";
+      const subtype = type === "fii" ? "fii" : type === "stock" ? "stock" : "";
       try {
         const params = new URLSearchParams({
-          limit: String(limit), page: String(page), subType: subtype,
+          limit: String(limit), page: String(page), ...(subtype ? { subType: subtype } : { type: "fund" }),
           sortBy: "name", sortOrder: "asc"
         });
         if (q) params.set("search", q);
