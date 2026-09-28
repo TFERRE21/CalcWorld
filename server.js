@@ -11,6 +11,7 @@ const ADMIN_EMAIL = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 const ADMIN_PASSWORD_HASH = String(process.env.ADMIN_PASSWORD_HASH || "").trim();
 const SESSION_SECRET = String(process.env.SESSION_SECRET || "").trim();
 const TWELVE_DATA_API_KEY = String(process.env.TWELVE_DATA_API_KEY || "").trim();
+const OPENAI_API_KEY = String(process.env.OPENAI_API_KEY || "").trim();
 const MARKET_CACHE_MS = 60 * 1000;
 const marketCache = new Map();
 
@@ -350,6 +351,55 @@ app.get("/api/market/currency", async (req, res) => {
     res.json({ from, to, rate: Number(data.rate) });
   } catch (error) {
     res.status(502).json({ error: error.message || "Não foi possível obter o câmbio." });
+  }
+});
+
+app.post("/api/research", async (req, res) => {
+  try {
+    if (!OPENAI_API_KEY) return res.status(503).json({ error: "Pesquisa por IA não configurada no servidor." });
+    const question = String(req.body?.question || "").trim().slice(0, 1200);
+    if (!question) return res.status(400).json({ error: "Digite uma pergunta." });
+
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + OPENAI_API_KEY
+      },
+      body: JSON.stringify({
+        model: "gpt-5",
+        tools: [{ type: "web_search" }],
+        input: [
+          {
+            role: "developer",
+            content: "Você é o pesquisador do CalcWorld. Responda em português do Brasil. Pesquise na web antes de responder perguntas sobre fatos atuais, preços, investimentos, economia, produtos financeiros ou qualquer assunto que dependa de informação recente. Dê respostas objetivas, explique de onde vieram os dados e diferencie dado atual, histórico, estimativa e opinião. Em investimentos, não faça recomendação personalizada de compra ou venda. Quando a pergunta envolver preço ou desempenho de ativo, informe a data/hora de referência e deixe claro quando a informação puder estar atrasada. Não invente números; se não encontrar dado confiável, diga isso. Ao final, inclua uma pequena seção 'Fontes consultadas' com os principais sites usados."
+          },
+          { role: "user", content: question }
+        ],
+        max_output_tokens: 1800,
+        store: false
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error("OpenAI research error:", data?.error?.message || response.status);
+      return res.status(502).json({ error: data?.error?.message || "Não foi possível realizar a pesquisa." });
+    }
+
+    const textOutput = data.output
+      ?.filter(item => item.type === "message")
+      ?.flatMap(item => item.content || [])
+      ?.filter(part => part.type === "output_text")
+      ?.map(part => part.text)
+      ?.join("\n")
+      ?.trim() || data.output_text || "";
+
+    if (!textOutput) return res.status(502).json({ error: "A pesquisa não retornou conteúdo." });
+    res.json({ answer: textOutput });
+  } catch (error) {
+    console.error("research error:", error.message);
+    res.status(502).json({ error: "Não foi possível realizar a pesquisa agora." });
   }
 });
 
