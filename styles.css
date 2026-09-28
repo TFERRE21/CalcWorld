@@ -157,3 +157,27 @@ html[data-theme="dark"] .calc-side-note{background:linear-gradient(135deg,#33290
 .backtest-card{margin-top:15px;padding:22px;border:1px solid #dbe5f2;border-radius:20px;background:linear-gradient(135deg,#f8fbff,#eef6ff)}.backtest-card h3{font-size:23px;margin:0 0 5px}.backtest-card p{margin:0;color:#667085;font-size:13px}.backtest-form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px;max-width:500px}.backtest-result{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:15px}.backtest-result>div{background:#fff;border:1px solid #e4e7ec;border-radius:13px;padding:12px}.backtest-result small{display:block;color:#667085;font-size:10px}.backtest-result strong{display:block;margin-top:3px;font-size:16px}.backtest-result p{grid-column:1/-1}
 @media(max-width:900px){.market-search{grid-template-columns:1fr 1fr}.market-dashboard{grid-template-columns:1fr}.backtest-result{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:520px){.market-center{padding:18px}.market-head{flex-direction:column}.market-search{grid-template-columns:1fr}.backtest-form{grid-template-columns:1fr}.backtest-result{grid-template-columns:1fr}.market-periods{overflow:auto}}
+
+/* AI web research */
+.ai-research{margin:28px auto 10px;padding:28px;border:1px solid var(--line);border-radius:24px;background:var(--surface);box-shadow:var(--shadow)}
+.ai-research-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
+.ai-research-head h2{margin:5px 0 7px;font-size:clamp(27px,4vw,40px);letter-spacing:-.04em}
+.ai-research-head p{margin:0;color:var(--muted);max-width:800px}
+.ai-badge{border:1px solid #bfdbfe;background:var(--soft);color:var(--accent);border-radius:999px;padding:8px 12px;font-size:11px;font-weight:900;white-space:nowrap}
+.ai-research-form{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:20px}
+.ai-research-form input{width:100%;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);padding:14px 16px;font-size:16px}
+.ai-research-form input:focus{outline:3px solid #dbeafe;border-color:#93c5fd}
+.ai-suggestions{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.ai-suggestions button{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:8px 11px;cursor:pointer;font-size:12px;font-weight:750}
+.ai-suggestions button:hover{border-color:#93c5fd;color:var(--accent)}
+.ai-research-result{margin-top:18px;border:1px solid var(--line);border-radius:16px;background:var(--bg);padding:20px;line-height:1.7}
+.ai-research-result.loading{display:flex;align-items:center;gap:10px;color:var(--muted)}
+.ai-research-result.error{border-color:#fecaca;background:#fff7f7;color:#991b1b}
+.ai-answer h3,.ai-answer h4{margin:16px 0 5px;color:var(--text)}
+.ai-answer strong{color:var(--text)}
+.ai-research-form button:disabled{opacity:.65;cursor:wait}
+html[data-theme="dark"] .ai-research-form input{background:#0d1727;color:var(--text);border-color:var(--line)}
+html[data-theme="dark"] .ai-suggestions button{background:#111a2b;color:var(--text);border-color:var(--line)}
+html[data-theme="dark"] .ai-research-result{background:#0d1727}
+html[data-theme="dark"] .ai-research-result.error{background:#2a1518;border-color:#713238;color:#fecaca}
+@media(max-width:650px){.ai-research{padding:20px;border-radius:18px}.ai-research-head{display:block}.ai-badge{display:inline-block;margin-top:12px}.ai-research-form{grid-template-columns:1fr}.ai-research-form .btn{width:100%}}
