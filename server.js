@@ -432,11 +432,33 @@ app.get("/api/market/catalog", async (req, res) => {
   }
 });
 
+async function fetchFastCryptoOverview(symbol, displayCurrency, period) {
+  const coin = String(symbol || "").split("/")[0].trim().toUpperCase();
+  if (!/^[A-Z0-9]{2,15}$/.test(coin)) return null;
+  const ranges = {"24h":["1d","1h"],"1m":["1mo","1d"],"6m":["6mo","1d"],"1y":["1y","1d"],"5y":["5y","1wk"],"max":["5y","1mo"]};
+  const [range, interval] = ranges[period] || ranges["1y"];
+  const query = new URLSearchParams({coin,currency:displayCurrency,range,interval});
+  const data = await fetchBrapi("/api/v2/crypto?" + query.toString());
+  const item = Array.isArray(data.coins) ? data.coins[0] : null;
+  if (!item || !Number.isFinite(Number(item.regularMarketPrice))) return null;
+  const history = Array.isArray(item.historicalDataPrice) ? item.historicalDataPrice : [];
+  const values = history.map(x => ({datetime:String(x.date || x.datetime || x.timestamp || ""),close:Number(x.close ?? x.regularMarketPrice ?? x.price)})).filter(x => x.datetime && Number.isFinite(x.close));
+  const previousClose = Number(item.regularMarketPrice) - Number(item.regularMarketChange || 0);
+  return {symbol:coin+"/"+displayCurrency,name:item.coinName||coin,exchange:"CRYPTO",type:"crypto",currency:item.currency||displayCurrency,price:Number(item.regularMarketPrice),previousClose:Number.isFinite(previousClose)?previousClose:0,change:Number(item.regularMarketChange||0),percentChange:Number(item.regularMarketChangePercent||0),datetime:item.regularMarketTime||data.requestedAt||null,values,sourceNote:"Cotação e histórico consultados diretamente na brapi.dev.",sources:[{title:"brapi.dev",url:"https://brapi.dev/docs/criptomoedas"}],provider:"brapi.dev",fetchedAt:new Date().toISOString()};
+}
+
 app.get("/api/market/search", async (req, res) => {
   try {
     const q = String(req.query.q || "").trim().slice(0, 100);
     const type = String(req.query.type || "").trim().slice(0, 30);
     if (!q) return res.status(400).json({ error: "Informe um ativo para pesquisar." });
+    if (type === "crypto") {
+      try {
+        const data = await fetchBrapi("/api/v2/crypto/available?search=" + encodeURIComponent(q));
+        const coins = Array.isArray(data.coins) ? data.coins.slice(0, 50) : [];
+        return res.json({data:coins.map(symbol=>({symbol:String(symbol),name:String(symbol),exchange:"CRYPTO",type:"crypto",currency:"BRL"}))});
+      } catch {}
+    }
     const typeLabel = ({crypto:"criptomoedas",stock:"ações, BDRs e ETFs",fii:"fundos imobiliários e FIAGROs",fund:"ETFs e fundos",fx:"moedas e pares cambiais"})[type] || "ativos financeiros";
     const prompt = [
       "Pesquise na web ativos financeiros reais que correspondam à busca.",
@@ -448,11 +470,11 @@ app.get("/api/market/search", async (req, res) => {
       '{"data":[{"symbol":"...","name":"...","exchange":"...","type":"...","country":"...","currency":"..."}]}',
       "Máximo 50 resultados. Não crie símbolos. Inclua somente ativos confirmados."
     ].join("\n");
-    const data = await openAIJson(prompt, "ai-search:" + type + ":" + q.toLowerCase().replace(/\s+/g, " "), 10 * 60 * 1000);
-    res.json({ data: Array.isArray(data.data) ? data.data.slice(0, 50) : [] });
-  } catch (error) {
-    console.error("market search error:", error.message);
-    res.status(502).json({ error: error.message || "Não foi possível pesquisar esse ativo agora." });
+    const data = await openAIJson(prompt,"ai-search:"+type+":"+q.toLowerCase().replace(/\s+/g," "),10*60*1000);
+    res.json({data:Array.isArray(data.data)?data.data.slice(0,50):[]});
+  } catch(error) {
+    console.error("market search error:",error.message);
+    res.status(502).json({error:error.message||"Não foi possível pesquisar esse ativo agora."});
   }
 });
 
@@ -463,6 +485,15 @@ app.get("/api/market/overview", async (req, res) => {
     const period = safeMarketParam(req.query.period, "1y");
     const displayCurrency = safeMarketParam(req.query.currency, "BRL").toUpperCase();
     if (!symbol) return res.status(400).json({ error: "Informe o símbolo do ativo." });
+
+    if (symbol.includes("/") && ["USD","BRL","EUR","GBP","JPY","CAD","AUD"].includes(symbol.toUpperCase().split("/")[1])) {
+      try {
+        const fast = await fetchFastCryptoOverview(symbol, displayCurrency, period);
+        if (fast) return res.json(fast);
+      } catch (fastError) {
+        console.warn("crypto fast path fallback:", fastError.message);
+      }
+    }
 
     const prompt = [
       "Pesquise na web o ativo financeiro identificado abaixo e monte um retrato de mercado atual + histórico.",
