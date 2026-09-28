@@ -66,6 +66,39 @@ function renderReport(result){
  } else {
    const v=k=>n(k), m=x=>reportMoney(x), p=x=>reportNum(x)+"%", G=a=>'<div class="report-grid">'+a.map(x=>'<div><span>'+x[0]+'</span><strong>'+x[1]+'</strong></div>').join("")+'</div>';
    switch(c.type){
+    case "investmentSimulator":case "cdi":case "tesouro":case "cdb":case "lciLca":case "poupanca":case "investmentGoal":case "retirementInvestment":case "compareInvestments":{
+      const compound=(initial,monthly,annual,months)=>{const rr=Math.pow(1+annual/100,1/12)-1,n=Math.max(0,Math.floor(months));return initial*Math.pow(1+rr,n)+(Math.abs(rr)<1e-12?monthly*n:monthly*((Math.pow(1+rr,n)-1)/rr));};
+      if(c.type==="compareInvestments"){
+        const initial=v("a"),months=v("b"),ga=compound(initial,0,v("c"),months),gb=compound(initial,0,v("e"),months),a=ga-(ga-initial)*v("d")/100,b=gb-(gb-initial)*v("f")/100;
+        detail=G([["Capital inicial",m(initial)],["Investimento A",m(a)],["Investimento B",m(b)],["Diferença estimada",m(Math.abs(a-b))]]);interpretation="Comparação matemática com as taxas e impostos informados; não é recomendação de investimento.";
+      } else if(c.type==="investmentGoal"){
+        const target=v("a"),current=v("b"),rate=v("d")/100/12,n=Math.max(1,Math.floor(v("e"))),need=Math.abs(rate)<1e-12?(target-current)/n:(target-current*Math.pow(1+rate,n))*rate/(Math.pow(1+rate,n)-1);
+        detail=G([["Meta",m(target)],["Capital inicial",m(current)],["Aporte mensal necessário",m(Math.max(0,need))],["Prazo",n+" meses"]]);interpretation="Estimativa matemática do aporte necessário; retornos reais, custos e mudanças de mercado podem alterar o resultado.";
+      } else {
+        let initial=v("a"),monthly=v("b"),annual=v("c"),months=v("d");
+        if(c.type==="cdi"){annual=annual*v("d")/100;months=60;}
+        if(c.type==="tesouro"||c.type==="cdb"||c.type==="lciLca")months=v("d")*12;
+        if(c.type==="retirementInvestment"){months=Math.max(0,(v("b")-v("a"))*12);initial=v("c");monthly=v("d");annual=v("e");}
+        if(c.type==="poupanca"){annual=(Math.pow(1+v("c")/100,12)-1)*100;months=v("d");}
+        const tax=(c.type==="cdi"||c.type==="tesouro"||c.type==="cdb"||c.type==="lciLca")?v("e"):0;
+        const gross=compound(initial,monthly,annual,months),invested=initial+monthly*months,interest=Math.max(0,gross-invested),net=gross-interest*tax/100;
+        if(c.type==="retirementInvestment"){
+          const monthlyRate=Math.pow(1+annual/100,1/12)-1;detail=G([["Idade atual",reportNum(v("a"))],["Aposentadoria",reportNum(v("b"))],["Patrimônio projetado",m(gross)],["Renda mensal matemática",m(net*monthlyRate)]]);interpretation="Projeção matemática baseada nos aportes e na taxa informada. Não é promessa de renda futura.";
+        } else {
+          detail=G([["Capital investido",m(invested)],["Rendimento bruto",m(interest)],["Imposto estimado",m(Math.max(0,interest-net))],["Valor líquido estimado",m(net)]]);
+          interpretation="Simulação matemática com a taxa informada. Tributação, custos, liquidez, carência e regras do produto podem variar.";
+        }
+      } break;
+    }
+    case "fii":{
+      const initial=v("a"),monthly=v("b"),price=v("c"),div=v("d"),app=v("e"),months=Math.max(0,Math.floor(v("f"))),invested=initial+monthly*months,shares=price?invested/price:0,futurePrice=price*Math.pow(1+app/100,months/12),portfolio=shares*futurePrice,monthlyIncome=shares*div,totalIncome=monthlyIncome*months;
+      detail=G([["Total investido",m(invested)],["Cotas estimadas",reportNum(shares)],["Preço futuro estimado",m(futurePrice)],["Patrimônio estimado",m(portfolio)],["Rendimentos mensais estimados",m(monthlyIncome)],["Rendimentos no período",m(totalIncome)]]);interpretation="Estimativa simplificada de FII; cotação, rendimentos, custos e impostos podem alterar o resultado.";break;
+    }
+    case "dividendYield":{const dividend=v("a"),price=v("b"),dy=price?dividend/price*100:0;detail=G([["Dividendos anuais por cota",m(dividend)],["Preço",m(price)],["Dividend Yield",p(dy)]]);interpretation="O Dividend Yield é um indicador histórico/estimado e não garante rentabilidade futura.";break;}
+    case "stockInvestment":{const invested=v("a"),buy=v("b"),sell=v("c"),div=v("d"),finalValue=buy?invested/buy*sell+invested*div/100:0,profit=finalValue-invested;detail=G([["Investido",m(invested)],["Valor final estimado",m(finalValue)],["Lucro/prejuízo",m(profit)],["Retorno estimado",p(invested?profit/invested*100:0)]]);interpretation="Simulação simplificada de valorização e dividendos informados.";break;}
+    case "cryptoInvestment":{const invested=v("a"),buy=v("b"),sell=v("c"),fee=v("d"),finalValue=buy?invested/buy*sell*(1-fee/100):0,profit=finalValue-invested;detail=G([["Investido",m(invested)],["Valor final estimado",m(finalValue)],["Custos estimados",m(Math.max(0,invested/buy*sell*fee/100))],["Lucro/prejuízo",m(profit)]]);interpretation="Simulação matemática de preço de entrada e saída; criptoativos podem apresentar alta volatilidade e perdas.";break;}
+    case "realReturn":{const nominal=v("a")/100,inflation=v("b")/100,real=((1+nominal)/(1+inflation)-1)*100;detail=G([["Rentabilidade nominal",p(nominal*100)],["Inflação",p(inflation*100)],["Rendimento real",p(real)]]);interpretation="Rendimento real desconta o efeito da inflação pela relação entre os fatores.";break;}
+    case "equivalentRate":{const rate=v("a")/100,u=document.getElementById("unit")?.value,eq=u==="annual-monthly"?Math.pow(1+rate,1/12)-1:Math.pow(1+rate,12)-1;detail=G([["Taxa informada",p(rate*100)],["Conversão",escHtml(document.getElementById("unit")?.selectedOptions?.[0]?.text||"—")],["Taxa equivalente",p(eq*100)]]);interpretation="Conversão por capitalização composta, sem considerar impostos ou custos.";break;}
     case "percentage":{const a=v("a"),r=v("b"),z=a*r/100;detail=G([["Valor base",m(a)],["Percentual",p(r)],["Resultado",m(z)]]);interpretation="Percentual aplicado diretamente ao valor base.";break}
     case "rule3":{const a=v("a"),b=v("b"),cc=v("c"),z=a?b*cc/a:0;detail=G([["A",reportNum(a)],["B",reportNum(b)],["C",reportNum(cc)],["Resultado",reportNum(z)]]);interpretation="Regra de três: B × C ÷ A.";break}
     case "average":{const a=nums("a"),z=a.length?a.reduce((x,y)=>x+y,0)/a.length:0;detail=G([["Quantidade",String(a.length)],["Soma",reportNum(a.reduce((x,y)=>x+y,0))],["Média",reportNum(z)]]);interpretation="Média = soma ÷ quantidade.";break}
