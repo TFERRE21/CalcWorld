@@ -16,9 +16,6 @@ concurrency:
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,6 +37,10 @@ jobs:
             git commit -m "chore: update official legal data"
             git push
           fi
+      - name: Validate server and market JavaScript
+        run: |
+          node --check server.js
+          node --check market.js
       - name: Validate calculator catalog
         run: node scripts/validate-site.cjs
       - name: Remove deprecated Spanish generated pages
