@@ -14,6 +14,8 @@ const TWELVE_DATA_API_KEY = String(process.env.TWELVE_DATA_API_KEY || "").trim()
 const OPENAI_API_KEY = String(process.env.OPENAI_API_KEY || "").trim();
 const MARKET_CACHE_MS = 60 * 1000;
 const marketCache = new Map();
+const researchCache = new Map();
+const researchLimits = new Map();
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
@@ -383,8 +385,19 @@ app.get("/api/market/currency", async (req, res) => {
 app.post("/api/research", async (req, res) => {
   try {
     if (!OPENAI_API_KEY) return res.status(503).json({ error: "Pesquisa por IA não configurada no servidor." });
+
+    const ip = String(req.ip || "unknown");
+    const now = Date.now();
+    const limit = researchLimits.get(ip) || { count: 0, resetAt: now + 15 * 60 * 1000 };
+    if (limit.resetAt <= now) { limit.count = 0; limit.resetAt = now + 15 * 60 * 1000; }
+    if (limit.count >= 8) return res.status(429).json({ error: "Limite de pesquisas atingido. Tente novamente em alguns minutos." });
+    limit.count += 1;
+    researchLimits.set(ip, limit);
     const question = String(req.body?.question || "").trim().slice(0, 1200);
     if (!question) return res.status(400).json({ error: "Digite uma pergunta." });
+    const cacheKey = question.toLowerCase().replace(/\\s+/g, " ");
+    const cachedResearch = researchCache.get(cacheKey);
+    if (cachedResearch && cachedResearch.expiresAt > now) return res.json(cachedResearch.data);
 
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -402,7 +415,7 @@ app.post("/api/research", async (req, res) => {
           },
           { role: "user", content: question }
         ],
-        max_output_tokens: 1800,
+        max_output_tokens: 1400,
         store: false
       })
     });
@@ -413,16 +426,21 @@ app.post("/api/research", async (req, res) => {
       return res.status(502).json({ error: data?.error?.message || "Não foi possível realizar a pesquisa." });
     }
 
-    const textOutput = data.output
+    const textParts = data.output
       ?.filter(item => item.type === "message")
       ?.flatMap(item => item.content || [])
-      ?.filter(part => part.type === "output_text")
-      ?.map(part => part.text)
-      ?.join("\n")
-      ?.trim() || data.output_text || "";
+      ?.filter(part => part.type === "output_text") || [];
+    const textOutput = textParts.map(part => part.text).join("\n").trim() || data.output_text || "";
+    const sources = textParts.flatMap(part => part.annotations || [])
+      .filter(a => a.type === "url_citation" && a.url)
+      .map(a => ({ title: a.title || a.url, url: a.url }))
+      .filter((x, i, arr) => arr.findIndex(y => y.url === x.url) === i)
+      .slice(0, 8);
 
     if (!textOutput) return res.status(502).json({ error: "A pesquisa não retornou conteúdo." });
-    res.json({ answer: textOutput });
+    const payload = { answer: textOutput, sources };
+    researchCache.set(cacheKey, { expiresAt: now + 15 * 60 * 1000, data: payload });
+    res.json(payload);
   } catch (error) {
     console.error("research error:", error.message);
     res.status(502).json({ error: "Não foi possível realizar a pesquisa agora." });
