@@ -23,7 +23,19 @@
     if(!r.ok) throw new Error(d.error||"Erro ao consultar mercado");
     return d;
   }
-  function setStatus(text,kind=""){ $("marketStatus").textContent=text; $("marketStatus").className="market-status "+kind; }
+  function setStatus(text,kind=""){ $("marketStatus").textContent=text; $("marketStatus").className="market-status "+kind; }async function searchSymbols(){
+    const q=$("symbol").value.trim();
+    const box=$("symbolSuggestions");
+    if(!q||q.length<2){if(box)box.innerHTML="";return;}
+    try{
+      const d=await getJSON("/api/market/search?q="+encodeURIComponent(q));
+      if(!box)return;
+      const rows=(d.data||[]).slice(0,12);
+      box.innerHTML=rows.map(x=>'<button type="button" class="symbol-option" data-symbol="'+esc(x.symbol)+'" data-exchange="'+esc(x.exchange||"")+'"><strong>'+esc(x.symbol)+'</strong><span>'+esc(x.name||"")+' • '+esc(x.exchange||"")+'</span></button>').join("") || '<div class="symbol-empty">Nenhum ativo encontrado.</div>';
+      box.querySelectorAll(".symbol-option").forEach(b=>b.onclick=()=>{$("symbol").value=b.dataset.symbol;$("exchange").value=b.dataset.exchange==="CRYPTO"?"":b.dataset.exchange;box.innerHTML="";loadAll();});
+    }catch(e){if(box)box.innerHTML="";}
+  }
+
   function drawChart(values){
     const el=$("marketChart");
     if(!values.length){el.innerHTML='<div class="chart-empty">Histórico indisponível para este ativo.</div>';return;}
@@ -72,7 +84,7 @@
   }
   $("assetType").onchange=e=>presetList(e.target.value);
   $("currencyDisplay").onchange=e=>{state.currency=e.target.value;if(state.quote)loadAll();};
-  $("marketSearch").onsubmit=e=>{e.preventDefault();loadAll()};
+  $("marketSearch").onsubmit=e=>{e.preventDefault();loadAll()};\n  let searchTimer; $("symbol").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(searchSymbols,350);});
   $("backtestDate").value=new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().slice(0,10);
   $("backtestAmount").oninput=()=>renderBacktest(state.history);
   periodButtons();presetList("crypto");
