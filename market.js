@@ -109,6 +109,33 @@
     $("assetPresets").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("symbol").value=b.dataset.symbol; $("exchange").value=b.dataset.exchange==="CRYPTO"?"":b.dataset.exchange; $("symbolSuggestions").innerHTML=""; loadAll(); });
   }
 
+  async function loadCatalog(reset=true){
+    const type=currentType(), rawQ=$("symbol").value.trim();
+    const q=(rawQ && !(presets[type]||[]).some(x=>String(x[0]).toLowerCase()===rawQ.toLowerCase()))?rawQ:"";
+    if(reset){state.catalog=[];state.catalogPage=1;}
+    try{
+      const data=await getJSON("/api/market/catalog?type="+encodeURIComponent(type)+"&q="+encodeURIComponent(q)+"&page="+state.catalogPage+"&limit=60");
+      const rows=Array.isArray(data.data)?data.data:[];
+      state.catalog=reset?rows:state.catalog.concat(rows);
+      state.catalogHasNext=Boolean(data.hasNextPage);
+      const meta=$("catalogMeta"); if(meta) meta.textContent=(data.total!=null?Number(data.total).toLocaleString("pt-BR")+" ativos":"Lista atualizada")+" • "+(data.source||"dados de mercado");
+      renderCatalog();
+    }catch(e){const box=$("marketCatalog");if(box)box.textContent="Catálogo temporariamente indisponível. Use a busca por ticker."}
+  }
+  function renderCatalog(){
+    const box=$("marketCatalog"); if(!box)return;
+    box.innerHTML="";
+    (state.catalog||[]).forEach(x=>{
+      const b=document.createElement("button"); b.type="button"; b.className="catalog-item"; b.dataset.symbol=x.symbol||""; b.dataset.exchange=x.exchange||"";
+      const strong=document.createElement("strong"); strong.textContent=x.symbol||"";
+      const span=document.createElement("span"); span.textContent=x.name||x.symbol||"";
+      const small=document.createElement("small"); small.textContent=x.exchange||"mercado";
+      b.append(strong,span,small); b.onclick=()=>{ $("symbol").value=b.dataset.symbol; $("exchange").value=b.dataset.exchange==="CRYPTO"?"":b.dataset.exchange; loadAll(); };
+      box.appendChild(b);
+    });
+    if(state.catalogHasNext){const more=document.createElement("button");more.type="button";more.className="catalog-more";more.textContent="Carregar mais ativos →";more.onclick=()=>{state.catalogPage+=1;loadCatalog(false)};box.appendChild(more)}
+    if(!state.catalog.length){const e=document.createElement("div");e.className="asset-list-empty";e.textContent="Nenhum ativo encontrado.";box.appendChild(e)}
+  }
   function drawChart(values){
     const el=$("marketChart");
     if(!values.length){el.innerHTML='<div class="chart-empty">Histórico indisponível para este ativo.</div>';return;}
