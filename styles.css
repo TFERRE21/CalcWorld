@@ -200,3 +200,17 @@ html[data-theme="dark"] .investment-type-card{box-shadow:none}
 @media(max-width:600px){.investment-type-grid{grid-template-columns:1fr}.investment-type-card{min-height:120px}}
 
 .ai-sources{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:12px}.ai-sources strong{font-size:13px}.ai-sources a{color:var(--accent);text-decoration:none}.ai-sources a:hover{text-decoration:underline}
+
+
+/* CalcWorld Invest — shared premium treatment for every investment calculator */
+.investment-calc-page{position:relative}
+.investment-calc-page .eyebrow{letter-spacing:.12em}
+.investment-calc-banner{margin:8px 0 28px;padding:24px 26px;border:1px solid rgba(37,99,235,.22);border-radius:22px;background:linear-gradient(135deg,rgba(37,99,235,.10),rgba(124,58,237,.07));box-shadow:0 16px 40px rgba(15,23,42,.06)}
+.investment-calc-banner span{display:block;font-size:12px;font-weight:900;letter-spacing:.14em;color:var(--accent);margin-bottom:8px}
+.investment-calc-banner strong{display:block;font-size:24px;letter-spacing:-.02em}
+.investment-calc-banner p{margin:7px 0 12px;color:var(--muted)}
+.investment-calc-banner a{font-weight:850;color:var(--accent);text-decoration:none}
+.investment-calc-page .calc-box,.investment-calc-page .calc-info,.investment-calc-page .calc-side-card{border-radius:20px}
+.investment-calc-page .calc-main{min-width:0}
+@media(max-width:760px){.investment-calc-banner{padding:20px}.investment-calc-banner strong{font-size:20px}}
+html[data-theme="dark"] .investment-calc-banner{background:linear-gradient(135deg,rgba(37,99,235,.16),rgba(124,58,237,.12));border-color:rgba(147,197,253,.22)}
