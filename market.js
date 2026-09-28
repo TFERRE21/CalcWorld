@@ -230,22 +230,44 @@
     exchange=asset[2]==="CRYPTO"?"":asset[2];
     $("symbol").value=symbol;
     $("exchange").value=exchange;
-    setStatus("Consultando dados de mercado…");
-    $("marketName").textContent="Carregando…";$("marketPrice").textContent="—";$("marketChart").innerHTML='<div class="chart-empty">Carregando histórico…</div>';
+    setStatus("Consultando cotação…");
+    $("marketName").textContent="Carregando…";
+    $("marketPrice").textContent="—";
+    $("marketChange").textContent="—";
+    $("marketChart").innerHTML='<div class="chart-empty">Carregando histórico…</div>';
+    $("marketMeta").innerHTML="";
+    state.quote=null;
+    state.history=[];
+    state.backtestRan=false;
+    const displayCurrency=$("currencyDisplay").value;
+    const base="/api/market/quote-fast?symbol="+encodeURIComponent(symbol)+"&exchange="+encodeURIComponent(exchange)+"&currency="+encodeURIComponent(displayCurrency)+"&type="+encodeURIComponent(currentType());
+    const historyUrl="/api/market/history-fast?symbol="+encodeURIComponent(symbol)+"&exchange="+encodeURIComponent(exchange)+"&period="+encodeURIComponent(period)+"&currency="+encodeURIComponent(displayCurrency)+"&type="+encodeURIComponent(currentType());
+
     try{
-      const displayCurrency=$("currencyDisplay").value;
-      const q=await getJSON("/api/market/overview?symbol="+encodeURIComponent(symbol)+"&exchange="+encodeURIComponent(exchange)+"&period="+encodeURIComponent(period)+"&currency="+encodeURIComponent(displayCurrency)+"&type="+encodeURIComponent(currentType()));
-      if(!q || !q.values?.length){
-        throw new Error("A pesquisa não encontrou histórico verificável para este ativo.");
-      }
-      renderQuote(q);
-      state.history=q.values||[];
-      state.backtestRan=false;
-      drawChart(state.history);
-      $("backtestResult").innerHTML="Informe valor e data e clique em <b>Calcular simulação →</b>.";
-      const note=q.sourceNote ? " "+q.sourceNote : "";
-      setStatus("Dados pesquisados pela OpenAI na web. Atualização: "+(q.datetime||"data não informada")+"."+note,"ok");
-    }catch(e){setStatus(e.message || "Não foi possível consultar os dados de mercado pela OpenAI.","error");$("marketChart").innerHTML='<div class="chart-empty">Não foi possível carregar os dados.</div>';}
+      const quote=await getJSON(base);
+      renderQuote(quote);
+      state.quote=quote;
+      setStatus("Cotação carregada. Carregando gráfico…","ok");
+
+      getJSON(historyUrl).then(h=>{
+        state.history=Array.isArray(h.values)?h.values:[];
+        if(!state.history.length){
+          $("marketChart").innerHTML='<div class="chart-empty">Histórico indisponível para este ativo.</div>';
+          setStatus("Cotação carregada. Histórico indisponível para o período selecionado.","ok");
+          return;
+        }
+        drawChart(state.history);
+        $("backtestResult").innerHTML="Informe valor e data e clique em <b>Calcular simulação →</b>.";
+        setStatus("Cotação e gráfico carregados pela API de mercado.","ok");
+      }).catch(e=>{
+        $("marketChart").innerHTML='<div class="chart-empty">Não foi possível carregar o histórico agora.</div>';
+        setStatus("Cotação carregada. O histórico poderá ser carregado novamente ao trocar o período.","ok");
+        console.warn("market history-fast:",e.message);
+      });
+    }catch(e){
+      setStatus(e.message || "Não foi possível consultar a cotação.","error");
+      $("marketChart").innerHTML='<div class="chart-empty">Não foi possível carregar os dados.</div>';
+    }
   }
   function periodButtons(){
     document.querySelectorAll("[data-period]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-period]").forEach(x=>x.classList.remove("active"));b.classList.add("active");state.period=b.dataset.period;loadAll();});
