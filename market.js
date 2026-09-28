@@ -99,5 +99,5 @@
   let searchTimer; $("symbol").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(searchSymbols,350);});
   $("backtestDate").value=new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().slice(0,10);
   $("backtestAmount").oninput=()=>renderBacktest(state.history);
-  periodButtons();presetList("crypto");
+  periodButtons();presetList("crypto");loadAll();
 })();
