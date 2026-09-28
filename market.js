@@ -70,7 +70,7 @@
     document.querySelectorAll("[data-period]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-period]").forEach(x=>x.classList.remove("active"));b.classList.add("active");state.period=b.dataset.period;loadAll();});
   }
   $("assetType").onchange=e=>presetList(e.target.value);
-  $("currencyDisplay").onchange=e=>{state.currency=e.target.value};
+  $("currencyDisplay").onchange=e=>{state.currency=e.target.value;if(state.quote)loadAll();};
   $("marketSearch").onsubmit=e=>{e.preventDefault();loadAll()};
   $("backtestDate").value=new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().slice(0,10);
   $("backtestAmount").oninput=()=>renderBacktest(state.history);
