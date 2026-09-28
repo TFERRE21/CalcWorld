@@ -339,6 +339,95 @@ function periodDescription(period) {
   })[period] || "último ano";
 }
 
+async function fetchBinance(path) {
+  const response = await fetch("https://api.binance.com" + path, { headers: { "Accept": "application/json" } });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data?.msg || "Binance indisponível");
+  return data;
+}
+
+async function fetchBinanceCryptoQuote(symbol, displayCurrency, period) {
+  const coin = String(symbol || "").split("/")[0].trim().toUpperCase();
+  if (!/^[A-Z0-9]{2,15}$/.test(coin)) return null;
+
+  const quoteCandidates = displayCurrency === "BRL" ? ["BRL", "USDT"] : displayCurrency === "USD" ? ["USDT"] : [displayCurrency, "USDT"];
+  let pair = null;
+  let ticker = null;
+  for (const quote of quoteCandidates) {
+    const candidate = coin + quote;
+    try {
+      ticker = await fetchBinance("/api/v3/ticker/24hr?symbol=" + encodeURIComponent(candidate));
+      if (ticker && Number.isFinite(Number(ticker.lastPrice))) { pair = candidate; break; }
+    } catch {}
+  }
+  if (!pair || !ticker) return null;
+
+  let conversion = 1;
+  let outputCurrency = displayCurrency;
+  if (displayCurrency === "BRL" && pair.endsWith("USDT")) {
+    try {
+      const fx = await fetchBinance("/api/v3/ticker/price?symbol=USDTBRL");
+      const rate = Number(fx.price);
+      if (Number.isFinite(rate) && rate > 0) conversion = rate;
+    } catch {}
+  } else if (displayCurrency !== "USDT" && pair.endsWith("USDT") && displayCurrency !== "USD") {
+    outputCurrency = "USD";
+  }
+
+  const price = Number(ticker.lastPrice) * conversion;
+  const change = Number(ticker.priceChange) * conversion;
+  const percentChange = Number(ticker.priceChangePercent);
+  const ranges = {"24h":["1d","1h"],"1m":["1mo","1d"],"6m":["6mo","1d"],"1y":["1y","1d"],"5y":["5y","1wk"],"max":["5y","1mo"]};
+  const [range, interval] = ranges[period] || ranges["1y"];
+  let values = [];
+  try {
+    const klines = await fetchBinance("/api/v3/klines?symbol=" + encodeURIComponent(pair) + "&interval=" + interval + "&limit=1000");
+    values = (Array.isArray(klines) ? klines : []).map(k => ({
+      datetime: new Date(Number(k[0])).toISOString(),
+      close: Number(k[4]) * conversion
+    })).filter(x => x.datetime && Number.isFinite(x.close) && x.close > 0);
+  } catch {}
+
+  return {
+    symbol: coin + "/" + outputCurrency,
+    name: coin,
+    exchange: "BINANCE",
+    type: "crypto",
+    currency: outputCurrency,
+    price,
+    previousClose: price - change,
+    change,
+    percentChange,
+    datetime: new Date(Number(ticker.closeTime || Date.now())).toISOString(),
+    values,
+    sourceNote: "Cotação e histórico consultados diretamente na Binance, sem necessidade de token.",
+    sources: [{title:"Binance API",url:"https://www.binance.com/"}],
+    provider: "Binance",
+    fetchedAt: new Date().toISOString()
+  };
+}
+
+async function fetchBinanceCryptoCatalog(q = "", limit = 60, page = 1) {
+  const data = await fetchBinance("/api/v3/exchangeInfo");
+  const symbols = Array.isArray(data.symbols) ? data.symbols : [];
+  const query = String(q || "").trim().toUpperCase();
+  const seen = new Set();
+  const rows = [];
+  for (const x of symbols) {
+    if (x.status !== "TRADING" || x.isSpotTradingAllowed === false) continue;
+    const quote = String(x.quoteAsset || "").toUpperCase();
+    if (!["USDT","USDC","FDUSD","BRL","BTC","ETH"].includes(quote)) continue;
+    const base = String(x.baseAsset || "").toUpperCase();
+    if (!base || seen.has(base)) continue;
+    if (query && !base.includes(query) && !String(x.symbol || "").includes(query)) continue;
+    seen.add(base);
+    rows.push({symbol:base + "/USDT",name:base,exchange:"BINANCE",type:"crypto",currency:"USD"});
+  }
+  rows.sort((a,b)=>a.symbol.localeCompare(b.symbol));
+  const start=(Math.max(1,page)-1)*limit;
+  return {rows:rows.slice(start,start+limit),total:rows.length,hasNextPage:start+limit<rows.length};
+}
+
 async function fetchBrapi(path, options = {}) {
   const headers = { "Accept": "application/json", ...(options.headers || {}) };
   if (process.env.BRAPI_API_KEY) headers.Authorization = "Bearer " + process.env.BRAPI_API_KEY;
@@ -365,12 +454,20 @@ app.get("/api/market/catalog", async (req, res) => {
 
     if (type === "crypto") {
       try {
-        const data = await fetchBrapi("/api/v2/crypto/available" + (q ? "?search=" + encodeURIComponent(q) : ""));
-        rows = (Array.isArray(data.coins) ? data.coins : []).map(symbol => ({
-          symbol: String(symbol), name: String(symbol), exchange: "CRYPTO", type: "crypto", currency: "BRL"
-        }));
-        source = "brapi.dev";
-      } catch {}
+        const binance = await fetchBinanceCryptoCatalog(q, limit, page);
+        rows = binance.rows;
+        total = binance.total;
+        hasNextPage = binance.hasNextPage;
+        source = "Binance";
+      } catch {
+        try {
+          const data = await fetchBrapi("/api/v2/crypto/available" + (q ? "?search=" + encodeURIComponent(q) : ""));
+          rows = (Array.isArray(data.coins) ? data.coins : []).map(symbol => ({
+            symbol: String(symbol) + "/USDT", name: String(symbol), exchange: "CRYPTO", type: "crypto", currency: "USD"
+          }));
+          source = "brapi.dev";
+        } catch {}
+      }
     } else if (type === "fx") {
       try {
         const data = await fetchBrapi("/api/v2/currency/available" + (q ? "?search=" + encodeURIComponent(q) : ""));
@@ -432,6 +529,12 @@ app.get("/api/market/catalog", async (req, res) => {
 });
 
 async function fetchFastCryptoOverview(symbol, displayCurrency, period) {
+  try {
+    const fast = await fetchBinanceCryptoQuote(symbol, displayCurrency, period);
+    if (fast) return fast;
+  } catch (error) {
+    console.warn("crypto Binance fallback:", error.message);
+  }
   const coin = String(symbol || "").split("/")[0].trim().toUpperCase();
   if (!/^[A-Z0-9]{2,15}$/.test(coin)) return null;
   const ranges = {"24h":["1d","1h"],"1m":["1mo","1d"],"6m":["6mo","1d"],"1y":["1y","1d"],"5y":["5y","1wk"],"max":["5y","1mo"]};
@@ -443,9 +546,8 @@ async function fetchFastCryptoOverview(symbol, displayCurrency, period) {
   const history = Array.isArray(item.historicalDataPrice) ? item.historicalDataPrice : [];
   const values = history.map(x => ({datetime:String(x.date || x.datetime || x.timestamp || ""),close:Number(x.close ?? x.regularMarketPrice ?? x.price)})).filter(x => x.datetime && Number.isFinite(x.close));
   const previousClose = Number(item.regularMarketPrice) - Number(item.regularMarketChange || 0);
-  return {symbol:coin+"/"+displayCurrency,name:item.coinName||coin,exchange:"CRYPTO",type:"crypto",currency:item.currency||displayCurrency,price:Number(item.regularMarketPrice),previousClose:Number.isFinite(previousClose)?previousClose:0,change:Number(item.regularMarketChange||0),percentChange:Number(item.regularMarketChangePercent||0),datetime:item.regularMarketTime||data.requestedAt||null,values,sourceNote:"Cotação e histórico consultados diretamente na brapi.dev.",sources:[{title:"brapi.dev",url:"https://brapi.dev/docs/criptomoedas"}],provider:"brapi.dev",fetchedAt:new Date().toISOString()};
+  return {symbol:coin+"/"+displayCurrency,name:item.coinName||coin,exchange:"CRYPTO",type:"crypto",currency:item.currency||displayCurrency,price:Number(item.regularMarketPrice),previousClose:Number.isFinite(previousClose)?previousClose:0,change:Number(item.regularMarketChange||0),percentChange:Number(item.regularMarketChangePercent||0),datetime:item.regularMarketTime||data.requestedAt||null,values,sourceNote:"Cotação e histórico consultados pela API de mercado.",sources:[{title:"brapi.dev",url:"https://brapi.dev/docs/criptomoedas"}],provider:"brapi.dev",fetchedAt:new Date().toISOString()};
 }
-
 function typeFromSymbol(symbol) {
   const s = String(symbol || "").toUpperCase();
   if (/11$/.test(s)) return "fii";
