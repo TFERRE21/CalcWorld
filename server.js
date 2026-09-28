@@ -455,6 +455,15 @@ function typeFromSymbol(symbol) {
 
 async function fetchFastMarketOverview(symbol, exchange, type, displayCurrency, period) {
   const clean = String(symbol || "").trim().toUpperCase();
+  if (type === "fx") {
+    const pair = clean.replace("/", "-");
+    const data = await fetchBrapi("/api/v2/currency?currency=" + encodeURIComponent(pair));
+    const item = Array.isArray(data.currency) ? data.currency[0] : null;
+    if (!item) return null;
+    const price = Number(item.bidPrice ?? item.askPrice);
+    if (!Number.isFinite(price)) return null;
+    return {symbol:clean,name:item.name||clean,exchange:"FOREX",type:"fx",currency:displayCurrency,price,previousClose:price-Number(item.bidVariation||0),change:Number(item.bidVariation||0),percentChange:Number(item.percentageChange||0),datetime:item.updatedAtDate||data.requestedAt||null,values:[],sourceNote:"Cotação PTAX consultada diretamente pela brapi.dev / Banco Central.",sources:[{title:"brapi.dev — moedas",url:"https://brapi.dev/docs/moedas"}],provider:"brapi.dev",fetchedAt:new Date().toISOString()};
+  }
   if (!clean) return null;
   if (type === "crypto" || clean.includes("/")) {
     return fetchFastCryptoOverview(clean, displayCurrency, period);
