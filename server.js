@@ -329,13 +329,13 @@ app.get("/api/market/history", async (req, res) => {
       symbol, exchange, interval, start_date: dates.start, end_date: dates.end,
       outputsize: 5000, order: "ASC", timezone: "UTC", dp: 8, adjust: "all"
     }));
-    const values = Array.isArray(data.values) ? data.values.reverse() : [];
+    const values = Array.isArray(data.values) ? [...data.values].reverse() : [];
     res.json({
       symbol: data.meta?.symbol || symbol, currency: data.meta?.currency || "USD",
       interval, period, values: values.map(x => ({
         datetime: x.datetime, close: Number(x.close), open: Number(x.open || x.close),
         high: Number(x.high || x.close), low: Number(x.low || x.close), volume: Number(x.volume || 0)
-      })).filter(x => Number.isFinite(x.close)).reverse()
+      })).filter(x => Number.isFinite(x.close))
     });
   } catch (error) {
     res.status(502).json({ error: error.message || "Não foi possível obter o histórico." });
