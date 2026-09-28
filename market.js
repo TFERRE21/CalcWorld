@@ -171,7 +171,8 @@
   $("backtestDate").value=new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().slice(0,10);
   $("backtestAmount").oninput=()=>renderBacktest(state.history);
   $("backtestDate").onchange=()=>renderBacktest(state.history);
-  $("backtestButton").onclick=()=>renderBacktest(state.history);\n  $("catalogLoad").onclick=()=>loadCatalog(true);
+  $("backtestButton").onclick=()=>renderBacktest(state.history);
+  $("catalogLoad").onclick=()=>loadCatalog(true);
   periodButtons();
   presetList("crypto");
   loadAll();
