@@ -198,3 +198,5 @@ html[data-theme="dark"] .ai-research-result.error{background:#2a1518;border-colo
 html[data-theme="dark"] .investment-type-card{box-shadow:none}
 @media(max-width:1000px){.investment-type-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.investment-type-grid{grid-template-columns:1fr}.investment-type-card{min-height:120px}}
+
+.ai-sources{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:12px}.ai-sources strong{font-size:13px}.ai-sources a{color:var(--accent);text-decoration:none}.ai-sources a:hover{text-decoration:underline}
