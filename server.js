@@ -502,6 +502,49 @@ async function fetchFastMarketOverview(symbol, exchange, type, displayCurrency, 
   };
 }
 
+app.get("/api/market/quote-fast", async (req, res) => {
+  try {
+    const symbol = safeMarketParam(req.query.symbol);
+    const exchange = safeMarketParam(req.query.exchange);
+    const displayCurrency = safeMarketParam(req.query.currency, "BRL").toUpperCase();
+    const requestedType = safeMarketParam(req.query.type, "").toLowerCase();
+    if (!symbol) return res.status(400).json({ error: "Informe o símbolo do ativo." });
+    const detectedType = requestedType || (exchange.toUpperCase() === "CRYPTO" ? "crypto" : typeFromSymbol(symbol));
+    const data = await fetchFastMarketOverview(symbol, exchange, detectedType, displayCurrency, "24h");
+    if (!data) return res.status(502).json({ error: "Cotação rápida indisponível para este ativo." });
+    data.values = [];
+    res.json(data);
+  } catch (error) {
+    console.error("market quote-fast error:", error.message);
+    res.status(502).json({ error: error.message || "Não foi possível obter a cotação rápida." });
+  }
+});
+
+app.get("/api/market/history-fast", async (req, res) => {
+  try {
+    const symbol = safeMarketParam(req.query.symbol);
+    const exchange = safeMarketParam(req.query.exchange);
+    const period = safeMarketParam(req.query.period, "1y");
+    const displayCurrency = safeMarketParam(req.query.currency, "BRL").toUpperCase();
+    const requestedType = safeMarketParam(req.query.type, "").toLowerCase();
+    if (!symbol) return res.status(400).json({ error: "Informe o símbolo do ativo." });
+    const detectedType = requestedType || (exchange.toUpperCase() === "CRYPTO" ? "crypto" : typeFromSymbol(symbol));
+    const data = await fetchFastMarketOverview(symbol, exchange, detectedType, displayCurrency, period);
+    if (!data) return res.status(502).json({ error: "Histórico rápido indisponível para este ativo." });
+    res.json({
+      symbol: data.symbol,
+      currency: data.currency,
+      period,
+      values: Array.isArray(data.values) ? data.values : [],
+      sourceNote: data.sourceNote || "",
+      provider: data.provider || "brapi.dev"
+    });
+  } catch (error) {
+    console.error("market history-fast error:", error.message);
+    res.status(502).json({ error: error.message || "Não foi possível obter o histórico rápido." });
+  }
+});
+
 app.get("/api/market/search", async (req, res) => {
   try {
     const q = String(req.query.q || "").trim().slice(0, 100);
