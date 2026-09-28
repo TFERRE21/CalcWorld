@@ -181,3 +181,20 @@ html[data-theme="dark"] .ai-suggestions button{background:#111a2b;color:var(--te
 html[data-theme="dark"] .ai-research-result{background:#0d1727}
 html[data-theme="dark"] .ai-research-result.error{background:#2a1518;border-color:#713238;color:#fecaca}
 @media(max-width:650px){.ai-research{padding:20px;border-radius:18px}.ai-research-head{display:block}.ai-badge{display:inline-block;margin-top:12px}.ai-research-form{grid-template-columns:1fr}.ai-research-form .btn{width:100%}}
+
+/* Investment catalog and universal symbol search */
+.symbol-suggestions{position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-top:5px;box-shadow:var(--shadow);overflow:hidden}
+.market-symbol{position:relative}
+.symbol-option{width:100%;display:flex;flex-direction:column;gap:2px;text-align:left;padding:10px 12px;border:0;border-bottom:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer}
+.symbol-option:last-child{border-bottom:0}.symbol-option:hover{background:var(--soft)}
+.symbol-option strong{font-size:13px}.symbol-option span{font-size:11px;color:var(--muted)}
+.symbol-empty{padding:12px;color:var(--muted);font-size:12px}
+.investment-type-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.investment-type-card{min-height:150px;text-align:left;border:1px solid var(--line);border-radius:18px;padding:20px;background:var(--surface);color:var(--text);cursor:pointer;box-shadow:0 4px 12px rgba(16,24,40,.035);transition:.2s}
+.investment-type-card:hover{transform:translateY(-3px);border-color:#93c5fd;box-shadow:var(--shadow)}
+.investment-type-card b,.investment-type-card span{display:block}.investment-type-card b{font-size:16px;margin-bottom:8px}.investment-type-card span{font-size:13px;color:var(--muted);line-height:1.5}
+.fixed-income-note{margin-top:16px;padding:16px 18px;border:1px solid #bfdbfe;background:var(--soft);border-radius:14px;color:var(--muted);font-size:13px}
+.fixed-income-note strong{color:var(--text)}
+html[data-theme="dark"] .investment-type-card{box-shadow:none}
+@media(max-width:1000px){.investment-type-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.investment-type-grid{grid-template-columns:1fr}.investment-type-card{min-height:120px}}
