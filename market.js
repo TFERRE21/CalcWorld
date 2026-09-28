@@ -66,17 +66,28 @@
     setStatus("Consultando dados de mercado…");
     $("marketName").textContent="Carregando…";$("marketPrice").textContent="—";$("marketChart").innerHTML='<div class="chart-empty">Carregando histórico…</div>';
     try{
-      const [q,h]=await Promise.all([
+      const results = await Promise.allSettled([
         getJSON("/api/market/quote?symbol="+encodeURIComponent(symbol)+"&exchange="+encodeURIComponent(exchange)),
         getJSON("/api/market/history?symbol="+encodeURIComponent(symbol)+"&exchange="+encodeURIComponent(exchange)+"&period="+encodeURIComponent(period))
       ]);
+      const qResult = results[0], hResult = results[1];
+      if (hResult.status !== "fulfilled") throw hResult.reason;
+      const h = hResult.value;
+      let q = qResult.status === "fulfilled" ? qResult.value : null;
+      if (!q) {
+        setStatus("Histórico carregado, mas a cotação atual não respondeu. O gráfico continua disponível.", "ok");
+      }
       let displayCurrency=$("currencyDisplay").value;
-      if(q.currency!==displayCurrency){
+      if(q && q.currency!==displayCurrency){
         const fx=await getJSON("/api/market/currency?from="+encodeURIComponent(q.currency)+"&to="+encodeURIComponent(displayCurrency));
         q.price*=fx.rate;q.previousClose*=fx.rate;q.change*=fx.rate;q.currency=displayCurrency;
         h.values=(h.values||[]).map(x=>({...x,close:x.close*fx.rate,open:x.open*fx.rate,high:x.high*fx.rate,low:x.low*fx.rate}));
       }
-      renderQuote(q);state.history=h.values||[];drawChart(state.history);renderBacktest(state.history);setStatus("Dados atualizados. Fonte: provedor de dados de mercado.","ok");
+      if(q) renderQuote(q);
+      state.history=h.values||[];
+      drawChart(state.history);
+      renderBacktest(state.history);
+      if(q) setStatus("Dados atualizados. Fonte: provedor de dados de mercado.","ok");
     }catch(e){setStatus(e.message+" Configure a API de mercado no servidor se necessário.","error");$("marketChart").innerHTML='<div class="chart-empty">Não foi possível carregar os dados.</div>';}
   }
   function periodButtons(){
@@ -84,7 +95,8 @@
   }
   $("assetType").onchange=e=>presetList(e.target.value);
   $("currencyDisplay").onchange=e=>{state.currency=e.target.value;if(state.quote)loadAll();};
-  $("marketSearch").onsubmit=e=>{e.preventDefault();loadAll()};\n  let searchTimer; $("symbol").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(searchSymbols,350);});
+  $("marketSearch").onsubmit=e=>{e.preventDefault();loadAll()};
+  let searchTimer; $("symbol").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(searchSymbols,350);});
   $("backtestDate").value=new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().slice(0,10);
   $("backtestAmount").oninput=()=>renderBacktest(state.history);
   periodButtons();presetList("crypto");
