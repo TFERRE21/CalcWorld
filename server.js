@@ -532,13 +532,14 @@ app.get("/api/market/overview", async (req, res) => {
     const exchange = safeMarketParam(req.query.exchange);
     const period = safeMarketParam(req.query.period, "1y");
     const displayCurrency = safeMarketParam(req.query.currency, "BRL").toUpperCase();
+    const requestedType = safeMarketParam(req.query.type, "").toLowerCase();
     if (!symbol) return res.status(400).json({ error: "Informe o símbolo do ativo." });
 
     const prompt = [
       "Pesquise na web o ativo financeiro identificado abaixo e monte um retrato de mercado atual + histórico.",
       "Ativo: " + symbol,
       "Mercado/bolsa informado: " + (exchange || "não informado"),
-      "Perí    const detectedType = symbol.includes("/") ? "crypto" : (exchange === "CRYPTO" ? "crypto" : typeFromSymbol(symbol));
+      "Perí    const detectedType = requestedType || (exchange === "CRYPTO" ? "crypto" : typeFromSymbol(symbol));
     try {
       const fast = await fetchFastMarketOverview(symbol, exchange, detectedType, displayCurrency, period);
       if (fast) return res.json(fast);
