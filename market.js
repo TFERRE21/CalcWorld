@@ -234,7 +234,7 @@
     $("marketName").textContent="Carregando…";$("marketPrice").textContent="—";$("marketChart").innerHTML='<div class="chart-empty">Carregando histórico…</div>';
     try{
       const displayCurrency=$("currencyDisplay").value;
-      const q=await getJSON("/api/market/overview?symbol="+encodeURIComponent(symbol)+"&exchange="+encodeURIComponent(exchange)+"&period="+encodeURIComponent(period)+"&currency="+encodeURIComponent(displayCurrency));
+      const q=await getJSON("/api/market/overview?symbol="+encodeURIComponent(symbol)+"&exchange="+encodeURIComponent(exchange)+"&period="+encodeURIComponent(period)+"&currency="+encodeURIComponent(displayCurrency)+"&type="+encodeURIComponent(currentType()));
       if(!q || !q.values?.length){
         throw new Error("A pesquisa não encontrou histórico verificável para este ativo.");
       }
@@ -262,5 +262,6 @@
   $("catalogSort").onchange=()=>renderCatalog();
   periodButtons();
   presetList("crypto");
+  loadCatalog(true);
   loadAll();
 })();
