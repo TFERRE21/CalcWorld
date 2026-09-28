@@ -57,6 +57,12 @@
         getJSON("/api/market/quote?symbol="+encodeURIComponent(symbol)+"&exchange="+encodeURIComponent(exchange)),
         getJSON("/api/market/history?symbol="+encodeURIComponent(symbol)+"&exchange="+encodeURIComponent(exchange)+"&period="+encodeURIComponent(period))
       ]);
+      let displayCurrency=$("currencyDisplay").value;
+      if(q.currency!==displayCurrency){
+        const fx=await getJSON("/api/market/currency?from="+encodeURIComponent(q.currency)+"&to="+encodeURIComponent(displayCurrency));
+        q.price*=fx.rate;q.previousClose*=fx.rate;q.change*=fx.rate;q.currency=displayCurrency;
+        h.values=(h.values||[]).map(x=>({...x,close:x.close*fx.rate,open:x.open*fx.rate,high:x.high*fx.rate,low:x.low*fx.rate}));
+      }
       renderQuote(q);state.history=h.values||[];drawChart(state.history);renderBacktest(state.history);setStatus("Dados atualizados. Fonte: provedor de dados de mercado.","ok");
     }catch(e){setStatus(e.message+" Configure a API de mercado no servidor se necessário.","error");$("marketChart").innerHTML='<div class="chart-empty">Não foi possível carregar os dados.</div>';}
   }
