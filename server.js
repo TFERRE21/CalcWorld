@@ -395,7 +395,7 @@ app.post("/api/research", async (req, res) => {
     researchLimits.set(ip, limit);
     const question = String(req.body?.question || "").trim().slice(0, 1200);
     if (!question) return res.status(400).json({ error: "Digite uma pergunta." });
-    const cacheKey = question.toLowerCase().replace(/\\s+/g, " ");
+    const cacheKey = question.toLowerCase().replace(/\s+/g, " ");
     const cachedResearch = researchCache.get(cacheKey);
     if (cachedResearch && cachedResearch.expiresAt > now) return res.json(cachedResearch.data);
 
