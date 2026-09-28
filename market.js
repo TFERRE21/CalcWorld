@@ -32,7 +32,7 @@
       ["CAD/BRL","Dólar canadense","FOREX"],["AUD/BRL","Dólar australiano","FOREX"],["CHF/BRL","Franco suíço","FOREX"]
     ]
   };
-  let state={quote:null,history:[],currency:"BRL",period:"1y",searchResults:[]};
+  let state={quote:null,history:[],currency:"BRL",period:"1y",searchResults:[],catalog:[],catalogPage:1,catalogHasNext:false};
 
   function allAssets(){ return Object.values(presets).flat(); }
   function currentType(){ return $("assetType").value; }
@@ -164,14 +164,14 @@
   function periodButtons(){
     document.querySelectorAll("[data-period]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-period]").forEach(x=>x.classList.remove("active"));b.classList.add("active");state.period=b.dataset.period;loadAll();});
   }
-  $("assetType").onchange=e=>{ $("symbol").value=""; $("exchange").value=""; $("symbolSuggestions").innerHTML=""; presetList(e.target.value); };
+  $("assetType").onchange=e=>{ $("symbol").value=""; $("exchange").value=""; $("symbolSuggestions").innerHTML=""; state.searchResults=[]; presetList(e.target.value); loadCatalog(true); };
   $("currencyDisplay").onchange=e=>{state.currency=e.target.value;if(state.quote)loadAll();};
   $("marketSearch").onsubmit=e=>{e.preventDefault();loadAll()};
   $("symbol").addEventListener("input",()=>{searchSymbols();});
   $("backtestDate").value=new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().slice(0,10);
   $("backtestAmount").oninput=()=>renderBacktest(state.history);
   $("backtestDate").onchange=()=>renderBacktest(state.history);
-  $("backtestButton").onclick=()=>renderBacktest(state.history);
+  $("backtestButton").onclick=()=>renderBacktest(state.history);\n  $("catalogLoad").onclick=()=>loadCatalog(true);
   periodButtons();
   presetList("crypto");
   loadAll();
