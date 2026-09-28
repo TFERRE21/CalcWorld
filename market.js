@@ -79,8 +79,16 @@
   }
   async function getJSON(url){
     const r=await fetch(url,{cache:"no-store"});
-    const d=await r.json();
-    if(!r.ok) throw new Error(d.error||"Erro ao consultar mercado");
+    const text=await r.text();
+    let d={};
+    try{ d=text?JSON.parse(text):{}; }
+    catch{
+      if(/^\\s*<!doctype html|^\\s*<html/i.test(text)){
+        throw new Error("O servidor publicou a página, mas a API de mercado ainda não está ativa. Aguarde o deploy terminar e tente novamente.");
+      }
+      throw new Error("A API de mercado retornou uma resposta inválida.");
+    }
+    if(!r.ok) throw new Error(d.error||("Erro ao consultar mercado ("+r.status+")"));
     return d;
   }
   function setStatus(text,kind=""){ $("marketStatus").textContent=text; $("marketStatus").className="market-status "+kind; }async function searchSymbols(){
