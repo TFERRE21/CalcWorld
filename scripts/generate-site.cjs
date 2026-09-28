@@ -10,7 +10,7 @@ const calculators=sandbox.window.CALCULATORS||[];
 if(!calculators.length) throw new Error("No calculators found");
 const site="https://calcworld.com.br";
 const buildDate=new Date().toISOString().slice(0,10);
-const categoryNames={math:{pt:"Matemática",en:"Math"},finance:{pt:"Finanças",en:"Finance"},work:{pt:"Trabalho",en:"Work"},business:{pt:"Negócios",en:"Business"},daily:{pt:"Dia a dia",en:"Everyday"},date:{pt:"Datas",en:"Dates"},health:{pt:"Saúde",en:"Health"}};
+const categoryNames={math:{pt:"Matemática",en:"Math"},finance:{pt:"Finanças",en:"Finance"},work:{pt:"Trabalho",en:"Work"},business:{pt:"Negócios",en:"Business"},daily:{pt:"Dia a dia",en:"Everyday"},date:{pt:"Datas",en:"Dates"},health:{pt:"Saúde",en:"Health"},investment:{pt:"Investimentos",en:"Investments"}};
 const localeData={
 pt:{folder:"calculadoras",categoryFolder:"categoria",lang:"pt-BR",back:"Voltar",home:"Início",how:"Como usar",howText:"Informe os valores solicitados e clique em calcular. O resultado aparece no navegador.",important:"Importante",importantText:"Esta ferramenta é informativa. Em cálculos trabalhistas, fiscais, financeiros ou de saúde, confirme as regras aplicáveis.",related:"Você também pode gostar",ad:"Espaço para publicidade",categoryIntro:"Encontre calculadoras e ferramentas desta categoria."},
 en:{folder:"calculators",categoryFolder:"category",lang:"en",back:"Back",home:"Home",how:"How to use",howText:"Enter the requested values and click calculate. The result appears in your browser.",important:"Important",importantText:"This tool is informational. Verify applicable rules for legal, financial, tax or health calculations.",related:"Related calculators",ad:"Advertising space",categoryIntro:"Find calculators and tools in this category."},
@@ -51,7 +51,22 @@ function searchIntent(c,l){
  "juros-compostos":"Quem pesquisa por calculadora de juros compostos, simulador de juros compostos ou calcular juros compostos pode simular diferentes taxas, valores e períodos.",
  "ferias":"Quem pesquisa por calculadora de férias, calcular férias ou simulador de férias pode estimar o valor das férias com adicional de um terço.",
  "combustivel":"Quem pesquisa por calculadora de combustível, calcular combustível ou simulador de combustível pode estimar litros, consumo e custo de uma viagem.",
- "decimo-terceiro":"Quem pesquisa por calculadora de 13º salário, calcular décimo terceiro ou simulador de décimo terceiro pode estimar o valor proporcional."
+ "decimo-terceiro":"Quem pesquisa por calculadora de 13º salário, calcular décimo terceiro ou simulador de décimo terceiro pode estimar o valor proporcional.",
+ "simulador-de-investimentos":"Quem pesquisa por simulador de investimentos, calculadora de investimentos, simular investimentos ou calcular rendimento de investimento pode projetar capital, aportes, taxa e valor futuro.",
+ "calculadora-cdi":"Quem pesquisa por calculadora CDI, simulador CDI, rendimento CDI ou investimento que rende CDI pode simular uma taxa vinculada ao CDI informado.",
+ "simulador-tesouro-direto":"Quem pesquisa por simulador Tesouro Direto, calculadora Tesouro Direto, Tesouro Selic, Tesouro IPCA+, Tesouro Prefixado ou rendimento do Tesouro pode estimar o valor futuro com a taxa informada.",
+ "calculadora-cdb":"Quem pesquisa por calculadora CDB, simulador CDB, rendimento CDB ou quanto rende CDB pode estimar o valor líquido a partir da taxa e do imposto informados.",
+ "calculadora-lci-lca":"Quem pesquisa por calculadora LCI, calculadora LCA, simulador LCI LCA ou rendimento LCI pode estimar o crescimento com taxa, prazo e aportes.",
+ "simulador-fii":"Quem pesquisa por simulador de FII, calculadora de fundos imobiliários, rendimento de FII, dividendos de FII ou quanto rende FII pode estimar patrimônio e rendimentos a partir dos dados informados.",
+ "calculadora-poupanca":"Quem pesquisa por calculadora de poupança, simulador de poupança ou quanto rende a poupança pode projetar a evolução do saldo com a taxa mensal informada.",
+ "calculadora-dividend-yield":"Quem pesquisa por calculadora Dividend Yield, calcular dividend yield, DY de ação ou DY de FII pode calcular a relação entre dividendos e preço.",
+ "simulador-de-acoes":"Quem pesquisa por simulador de ações, calculadora de ações, calcular lucro em ações ou rendimento de ações pode simular valorização e dividendos.",
+ "simulador-de-criptomoedas":"Quem pesquisa por simulador de criptomoedas, calculadora de cripto, lucro com Bitcoin ou simular investimento em cripto pode projetar um cenário de preço de entrada e saída.",
+ "calculadora-rendimento-real":"Quem pesquisa por calculadora de rendimento real, rentabilidade real, retorno real ou rendimento descontando inflação pode calcular o efeito da inflação sobre a rentabilidade.",
+ "meta-de-investimento":"Quem pesquisa por calculadora de meta financeira, meta de investimento, quanto investir por mês ou aporte mensal para atingir uma meta pode estimar o aporte necessário.",
+ "simulador-de-aposentadoria":"Quem pesquisa por simulador de aposentadoria, calculadora de aposentadoria, quanto investir para aposentadoria ou renda para aposentadoria pode projetar um patrimônio com aportes e taxa informada.",
+ "comparador-de-investimentos":"Quem pesquisa por comparador de investimentos, comparar CDB, LCI, Tesouro ou investimentos pode colocar duas taxas e impostos em um mesmo cenário matemático.",
+ "taxa-equivalente":"Quem pesquisa por taxa equivalente, converter taxa mensal para anual ou taxa anual para mensal pode calcular a equivalência por capitalização composta."
  };
  return map[c.slug]||"";
 }
