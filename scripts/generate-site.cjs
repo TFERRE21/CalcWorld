@@ -46,7 +46,7 @@ function searchIntent(c,l){
  if(l!=="pt") return "";
  const map={
  "salario-liquido":"Quem procura por salário líquido, calcular salário líquido, simulador de salário líquido ou calculadora de salário líquido encontra aqui uma ferramenta para estimar o valor recebido a partir do salário bruto e dos descontos informados.",
- "rescisao":"Quem pesquisa por simulador de rescisão, calcular rescisão, calculadora de rescisão trabalhista ou cálculo de rescisão pode usar esta página para estimar as verbas conforme o motivo do desligamento e os dados informados.",
+ "rescisao":"Quem pesquisa por simulador de rescisão, calcular rescisão, calculadora de rescisão trabalhista, cálculo de rescisão ou rescisão CLT pode usar esta página para estimar as verbas conforme o motivo do desligamento e os dados informados.",
  "financiamento":"Quem pesquisa por calculadora de financiamento, simulador de financiamento ou calcular financiamento pode usar esta ferramenta para estimar parcela, juros e custo total.",
  "juros-compostos":"Quem pesquisa por calculadora de juros compostos, simulador de juros compostos ou calcular juros compostos pode simular diferentes taxas, valores e períodos.",
  "ferias":"Quem pesquisa por calculadora de férias, calcular férias ou simulador de férias pode estimar o valor das férias com adicional de um terço.",
@@ -118,8 +118,20 @@ function seoExtra(c,l){
  const faq=pt?[["O resultado é oficial?","Não. É uma estimativa informativa e pode depender das regras e dados do caso concreto."],["Posso salvar o resultado?","Sim. O relatório pode ser impresso ou salvo em PDF pelo navegador."],["Funciona no celular?","Sim. A página é responsiva e pode ser usada em celular, tablet ou computador."]]:[["Is the result official?","No. It is an informational estimate and may depend on the rules and data of the specific case."],["Can I save the result?","Yes. The report can be printed or saved as a PDF from the browser."],["Does it work on mobile?","Yes. The page is responsive and works on phones, tablets and desktops."]];
  return '<section class="seo-guide"><h2>'+esc(x[0])+'</h2><p>'+esc(x[1])+'</p><p>'+esc(x[2])+'</p><h2>'+(pt?"Perguntas frequentes":"Frequently asked questions")+'</h2><div class="seo-faq">'+faq.map(q=>'<details><summary>'+esc(q[0])+'</summary><p>'+esc(q[1])+'</p></details>').join("")+'</div></section>';
 }
+function seoTitle(c,l){
+  if(l!=="pt") return c.title[l];
+  const titles={
+    "rescisao":"Calculadora de rescisão trabalhista 2026 — calcular rescisão online",
+    "salario-liquido":"Calculadora de salário líquido — calcular salário líquido online",
+    "financiamento":"Calculadora de financiamento — simular financiamento online",
+    "juros-compostos":"Calculadora de juros compostos — simular juros compostos",
+    "ferias":"Calculadora de férias — calcular férias online",
+    "combustivel":"Calculadora de combustível — calcular custo da viagem"
+  };
+  return titles[c.slug]||c.title[l];
+}
 function page(c,l){
- const d=localeData[l],title=esc(c.title[l]),desc=esc(c.desc[l]),p=prefix(l),canonical=site+calcUrl(l,c.slug),intent=searchIntent(c,l),metaDesc=esc((l==="pt"?"Calculadora online grátis: "+c.title[l]+". "+c.desc[l]+(intent?" "+intent:""):"Online calculator: "+c.title[l]+". "+c.desc[l]));
+ const d=localeData[l],title=esc(seoTitle(c,l)),desc=esc(c.desc[l]),p=prefix(l),canonical=site+calcUrl(l,c.slug),intent=searchIntent(c,l),metaDesc=esc((l==="pt"?"Calculadora online grátis: "+c.title[l]+". "+c.desc[l]+(intent?" "+intent:""):"Online calculator: "+c.title[l]+". "+c.desc[l]));
  const alts=[["pt-BR",site+calcUrl("pt",c.slug)],["en",site+calcUrl("en",c.slug)]];
  const related=calculators.filter(x=>x.cat===c.cat&&x.id!==c.id).slice(0,6).map(x=>card(x,l)).join("");
  const catName=esc(categoryNames[c.cat][l]);
