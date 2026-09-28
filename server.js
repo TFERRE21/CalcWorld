@@ -407,7 +407,7 @@ app.get("/api/market/catalog", async (req, res) => {
         q ? "Filtro: " + q : "Sem filtro.",
         "Pesquise fontes de mercado, bolsas, emissores e provedores reconhecidos.",
         "Retorne até " + limit + " ativos confirmados nesta página.",
-        "Formato JSON: {"data":[{"symbol":"...","name":"...","exchange":"...","type":"...","country":"...","currency":"..."}],"hasNextPage":false}",
+        "Formato JSON: {data:[{symbol:...,name:...,exchange:...,type:...,country:...,currency:...}],hasNextPage:false}",
         "Não invente símbolos e não repita ativos."
       ].join("\n");
       const data = await openAIJson(prompt, cacheKey + ":ai", 30 * 60 * 1000);
