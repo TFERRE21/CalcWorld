@@ -333,3 +333,8 @@ button.catalog-item:hover{background:var(--soft)}
 }
 html[data-theme="dark"] .catalog-controls input,html[data-theme="dark"] .catalog-controls select,html[data-theme="dark"] .market-catalog{background:var(--surface);color:var(--text);border-color:var(--line)}
 html[data-theme="dark"] .catalog-head{background:var(--soft)}
+
+.backtest-events{grid-column:1/-1;display:grid;gap:5px;margin-top:2px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--soft)}
+.backtest-events small{font-weight:800;color:var(--muted)}
+.backtest-events span{font-size:12px;color:var(--text)}
+.backtest-error{grid-column:1/-1;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--soft);font-weight:700}
