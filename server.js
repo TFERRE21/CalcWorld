@@ -658,6 +658,44 @@ app.get("/api/market/backtest", async (req, res) => {
     const date = safeMarketParam(req.query.date);
     const currency = safeMarketParam(req.query.currency, "BRL").toUpperCase();
     if (!symbol || !date) return res.status(400).json({ error: "Informe o ativo e a data do investimento." });
+    // Caminho rápido: tenta o histórico estruturado antes da pesquisa por IA.
+    try {
+      const requestedType = safeMarketParam(req.query.type, "").toLowerCase();
+      const detectedType = requestedType || (exchange.toUpperCase() === "CRYPTO" ? "crypto" : typeFromSymbol(symbol));
+      let fast = null;
+      if (detectedType === "crypto") {
+        fast = await fetchFastCryptoOverview(symbol, currency, "max");
+      } else if (detectedType !== "fx") {
+        fast = await fetchFastMarketOverview(symbol, exchange, detectedType, currency, "max");
+      }
+      const values = Array.isArray(fast?.values) ? fast.values : [];
+      if (values.length) {
+        const target = date.slice(0, 10);
+        const ordered = values
+          .map(x => ({ date: String(x.datetime || "").slice(0,10), close: Number(x.close) }))
+          .filter(x => x.date && Number.isFinite(x.close) && x.close > 0)
+          .sort((a,b) => a.date.localeCompare(b.date));
+        const start = ordered.filter(x => x.date <= target).pop() || ordered[0];
+        const end = ordered[ordered.length - 1];
+        if (start && end && start.close > 0 && end.close > 0) {
+          return res.json({
+            symbol: fast.symbol || symbol,
+            name: fast.name || symbol,
+            currency: fast.currency || currency,
+            requestedDate: date,
+            start,
+            end,
+            events: [],
+            sourceNote: "Simulação calculada com histórico estruturado da brapi.dev.",
+            sources: [{title:"brapi.dev",url:"https://brapi.dev/docs"}],
+            provider: "brapi.dev"
+          });
+        }
+      }
+    } catch (fastError) {
+      console.warn("market backtest fast path fallback:", fastError.message);
+    }
+
     const prompt = [
       "Pesquise na web dados históricos verificáveis para calcular uma simulação de investimento.",
       "Ativo: " + symbol,
