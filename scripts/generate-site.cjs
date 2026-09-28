@@ -42,9 +42,22 @@ function formulaText(c,l){
  };
  return map[c.type]?.[l]||"";
 }
+function searchIntent(c,l){
+ if(l!=="pt") return "";
+ const map={
+ "salario-liquido":"Quem procura por salário líquido, calcular salário líquido, simulador de salário líquido ou calculadora de salário líquido encontra aqui uma ferramenta para estimar o valor recebido a partir do salário bruto e dos descontos informados.",
+ "rescisao":"Quem pesquisa por simulador de rescisão, calcular rescisão, calculadora de rescisão trabalhista ou cálculo de rescisão pode usar esta página para estimar as verbas conforme o motivo do desligamento e os dados informados.",
+ "financiamento":"Quem pesquisa por calculadora de financiamento, simulador de financiamento ou calcular financiamento pode usar esta ferramenta para estimar parcela, juros e custo total.",
+ "juros-compostos":"Quem pesquisa por calculadora de juros compostos, simulador de juros compostos ou calcular juros compostos pode simular diferentes taxas, valores e períodos.",
+ "ferias":"Quem pesquisa por calculadora de férias, calcular férias ou simulador de férias pode estimar o valor das férias com adicional de um terço.",
+ "combustivel":"Quem pesquisa por calculadora de combustível, calcular combustível ou simulador de combustível pode estimar litros, consumo e custo de uma viagem.",
+ "decimo-terceiro":"Quem pesquisa por calculadora de 13º salário, calcular décimo terceiro ou simulador de décimo terceiro pode estimar o valor proporcional."
+ };
+ return map[c.slug]||"";
+}
 function seoText(c,l){
  const n=esc(c.title[l]);
- if(l==="pt") return "Use a "+n+" online para calcular o resultado com os dados informados. Confira os valores antes de calcular e use o resultado como referência para sua decisão.";
+ if(l==="pt") return "Use a "+n+" online para calcular o resultado com os dados informados. Confira os valores antes de calcular e use o resultado como referência para sua decisão."+(searchIntent(c,l)?" "+searchIntent(c,l):"");
  if(l==="en") return "Use the "+n+" online to calculate a result from the values you enter. Review the inputs and use the result as a reference.";
  return "Usa la "+n+" online para calcular el resultado con los datos introducidos. Revisa los valores y utiliza el resultado como referencia.";
 }
@@ -76,7 +89,7 @@ function seoExtra(c,l){
  return '<section class="seo-guide"><h2>'+esc(x[0])+'</h2><p>'+esc(x[1])+'</p><p>'+esc(x[2])+'</p><h2>'+(pt?"Perguntas frequentes":"Frequently asked questions")+'</h2><div class="seo-faq">'+faq.map(q=>'<details><summary>'+esc(q[0])+'</summary><p>'+esc(q[1])+'</p></details>').join("")+'</div></section>';
 }
 function page(c,l){
- const d=localeData[l],title=esc(c.title[l]),desc=esc(c.desc[l]),p=prefix(l),canonical=site+calcUrl(l,c.slug),metaDesc=esc((l==="pt"?"Calculadora online grátis: "+c.title[l]+". "+c.desc[l]:"Online calculator: "+c.title[l]+". "+c.desc[l]));
+ const d=localeData[l],title=esc(c.title[l]),desc=esc(c.desc[l]),p=prefix(l),canonical=site+calcUrl(l,c.slug),intent=searchIntent(c,l),metaDesc=esc((l==="pt"?"Calculadora online grátis: "+c.title[l]+". "+c.desc[l]+(intent?" "+intent:""):"Online calculator: "+c.title[l]+". "+c.desc[l]));
  const alts=[["pt-BR",site+calcUrl("pt",c.slug)],["en",site+calcUrl("en",c.slug)]];
  const related=calculators.filter(x=>x.cat===c.cat&&x.id!==c.id).slice(0,6).map(x=>card(x,l)).join("");
  const catName=esc(categoryNames[c.cat][l]);
