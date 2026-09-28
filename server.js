@@ -430,7 +430,8 @@ app.post("/api/research", async (req, res) => {
       ?.filter(item => item.type === "message")
       ?.flatMap(item => item.content || [])
       ?.filter(part => part.type === "output_text") || [];
-    const textOutput = textParts.map(part => part.text).join("\n").trim() || data.output_text || "";
+    const textOutput = textParts.map(part => part.text).join("
+").trim() || data.output_text || "";
     const sources = textParts.flatMap(part => part.annotations || [])
       .filter(a => a.type === "url_citation" && a.url)
       .map(a => ({ title: a.title || a.url, url: a.url }))
@@ -464,7 +465,9 @@ app.use((req, res) => {
 setInterval(() => {
   const now = Date.now();
   for (const [token, session] of sessions) if (session.expiresAt < now) sessions.delete(token);
-  for (const [ip, attempt] of loginAttempts) if (attempt.resetAt < now) loginAttempts.delete(ip);\n  for (const [ip, attempt] of researchLimits) if (attempt.resetAt < now) researchLimits.delete(ip);\n  for (const [key, item] of researchCache) if (item.expiresAt < now) researchCache.delete(key);
+  for (const [ip, attempt] of loginAttempts) if (attempt.resetAt < now) loginAttempts.delete(ip);
+  for (const [ip, attempt] of researchLimits) if (attempt.resetAt < now) researchLimits.delete(ip);
+  for (const [key, item] of researchCache) if (item.expiresAt < now) researchCache.delete(key);
 }, 15 * 60 * 1000).unref();
 
 app.listen(PORT, "0.0.0.0", () => {
