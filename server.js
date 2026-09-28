@@ -522,6 +522,53 @@ app.get("/api/market/overview", async (req, res) => {
   }
 });
 
+app.get("/api/market/backtest", async (req, res) => {
+  try {
+    const symbol = safeMarketParam(req.query.symbol);
+    const exchange = safeMarketParam(req.query.exchange);
+    const date = safeMarketParam(req.query.date);
+    const currency = safeMarketParam(req.query.currency, "BRL").toUpperCase();
+    if (!symbol || !date) return res.status(400).json({ error: "Informe o ativo e a data do investimento." });
+    const prompt = [
+      "Pesquise na web dados históricos verificáveis para calcular uma simulação de investimento.",
+      "Ativo: " + symbol,
+      "Mercado/bolsa: " + (exchange || "não informado"),
+      "Data pretendida do investimento: " + date,
+      "Moeda de exibição: " + currency,
+      "",
+      "REGRAS:",
+      "1. Encontre o fechamento real da data pretendida. Se não houver pregão nessa data, use o pregão imediatamente anterior e informe a data efetivamente usada.",
+      "2. Encontre o último preço/fechamento verificável disponível e informe a data.",
+      "3. Não invente preços. Se não conseguir confirmar a data inicial ou final, retorne null.",
+      "4. Se houver dividendos, juros sobre capital, splits ou desdobramentos no intervalo, NÃO aplique automaticamente ao valor. Apenas liste eventos confirmados separadamente.",
+      "5. Se houver conversão de moeda, use uma taxa verificável e informe que a conversão pode usar câmbio de referência.",
+      "",
+      "Retorne SOMENTE JSON:",
+      '{"symbol":"...","name":"...","currency":"' + currency + '","requestedDate":"' + date + '","start":{"date":"YYYY-MM-DD","close":0},"end":{"date":"YYYY-MM-DD","close":0},"events":[{"date":"YYYY-MM-DD","type":"dividend|split|other","value":0,"description":"..."}],"sourceNote":"...","sources":[{"title":"...","url":"https://..."}]}'
+    ].join("\n");
+    const data = await openAIJson(prompt, ["ai-backtest", symbol, exchange, date, currency].join(":"), MARKET_CACHE_MS);
+    const startClose = Number(data?.start?.close);
+    const endClose = Number(data?.end?.close);
+    const valid = Number.isFinite(startClose) && startClose > 0 && Number.isFinite(endClose) && endClose > 0;
+    if (!valid) return res.status(422).json({ error: "Não foi possível confirmar preços históricos suficientes para essa data." });
+    res.json({
+      symbol: data.symbol || symbol,
+      name: data.name || symbol,
+      currency: data.currency || currency,
+      requestedDate: date,
+      start: { date: String(data.start.date || date), close: startClose },
+      end: { date: String(data.end.date || "").slice(0,10), close: endClose },
+      events: Array.isArray(data.events) ? data.events.slice(0,30) : [],
+      sourceNote: data.sourceNote || "",
+      sources: Array.isArray(data.sources) ? data.sources.slice(0,8) : [],
+      provider: "OpenAI Web Search"
+    });
+  } catch (error) {
+    console.error("market backtest error:", error.message);
+    res.status(502).json({ error: error.message || "Não foi possível calcular a simulação histórica." });
+  }
+});
+
 app.get("/api/market/quote", async (req, res) => {
   try {
     const symbol = safeMarketParam(req.query.symbol);
