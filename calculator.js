@@ -150,3 +150,27 @@ case"equivalentRate":{const x=n("a")/100,u=document.getElementById("unit").value
 default:r="—"}out(r)};document.getElementById("clear").onclick=()=>{document.querySelectorAll("#form input").forEach(i=>i.value="");document.getElementById("result").textContent=TX.result+": —"};
 const related=document.createElement("section");related.className="info related-tools";related.innerHTML='<h2>'+({pt:"Outras calculadoras",en:"More calculators",es:"Más calculadoras"}[l])+'</h2><div id="relatedGrid" class="grid"></div>';document.querySelector("main").appendChild(related);
 const rg=document.getElementById("relatedGrid");CALCULATORS.filter(x=>x.cat===c.cat&&x.id!==c.id).slice(0,8).forEach(x=>{const a=document.createElement("a");a.href="../"+x.slug+"/";a.className="card";a.innerHTML="<div class='card-icon'>"+x.icon+"</div><h3>"+x.title[l]+"</h3><p>"+x.desc[l]+"</p>";rg.appendChild(a)});
+const GUIDE_MAP={
+"salario-liquido-como-calcular":"Como calcular salário líquido",
+"quanto-vou-receber-se-pedir-demissao":"Quanto vou receber se pedir demissão?",
+"como-calcular-rescisao":"Como calcular rescisão trabalhista",
+"quanto-rende-1000-cdi":"Quanto rende R$ 1.000 no CDI?",
+"quanto-rende-10000-poupanca":"Quanto rende R$ 10.000 na poupança?",
+"juros-compostos-como-calcular":"Como calcular juros compostos",
+"financiamento-price-sac":"Financiamento Price ou SAC",
+"como-calcular-hora-extra":"Como calcular hora extra",
+"como-calcular-ferias":"Como calcular férias",
+"como-calcular-13-salario":"Como calcular o 13º salário",
+"porcentagem-de-aumento-como-calcular":"Como calcular porcentagem de aumento",
+"dias-uteis-como-calcular":"Como calcular dias úteis"
+};
+const GUIDE_BY_CALC={
+"netSalary":["salario-liquido-como-calcular"],"termination":["como-calcular-rescisao","quanto-vou-receber-se-pedir-demissao"],"investmentSimulator":["quanto-rende-1000-cdi","quanto-rende-10000-poupanca"],"cdi":["quanto-rende-1000-cdi"],"poupanca":["quanto-rende-10000-poupanca"],"compoundInterest":["juros-compostos-como-calcular"],"loan":["financiamento-price-sac"],"overtime":["como-calcular-hora-extra"],"vacation":["como-calcular-ferias"],"thirteenth":["como-calcular-13-salario"],"increase":["porcentagem-de-aumento-como-calcular"],"businessDays":["dias-uteis-como-calcular"]};
+const guideIds=GUIDE_BY_CALC[c.type]||[];
+if(guideIds.length){
+ const gs=document.createElement("section");gs.className="info related-guides";
+ gs.innerHTML='<div class="eyebrow">GUIAS CALCWORLD</div><h2>'+ (l==="en"?"Learn more before calculating":"Entenda mais antes de calcular") +'</h2><div class="guide-grid"></div>';
+ const gg=gs.querySelector(".guide-grid");
+ guideIds.forEach(id=>{const a=document.createElement("a");a.className="card";a.href="/guias/"+id+"/";a.innerHTML="<div class='card-icon'>▣</div><h3>"+(GUIDE_MAP[id]||"Guia")+"</h3><p>"+(l==="en"?"Practical explanation and calculation assumptions.":"Explicação prática, fórmula e premissas do cálculo.")+"</p><span class='text-link'>"+(l==="en"?"Read guide →":"Ler guia →")+"</span>";gg.appendChild(a)});
+ document.querySelector("main")?.appendChild(gs);
+}
