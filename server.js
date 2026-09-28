@@ -10,6 +10,9 @@ const ANALYTICS_FILE = process.env.ANALYTICS_FILE || path.join(ROOT, ".data", "a
 const ADMIN_EMAIL = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 const ADMIN_PASSWORD_HASH = String(process.env.ADMIN_PASSWORD_HASH || "").trim();
 const SESSION_SECRET = String(process.env.SESSION_SECRET || "").trim();
+const TWELVE_DATA_API_KEY = String(process.env.TWELVE_DATA_API_KEY || "").trim();
+const MARKET_CACHE_MS = 60 * 1000;
+const marketCache = new Map();
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
@@ -261,6 +264,93 @@ app.get("/api/admin/analytics", requireAdmin, (req, res) => {
     topPages,
     daysTracked: days.length
   });
+});
+
+
+async function marketFetch(endpoint, params) {
+  if (!TWELVE_DATA_API_KEY) throw new Error("TWELVE_DATA_API_KEY not configured");
+  const url = new URL("https://api.twelvedata.com/" + endpoint);
+  Object.entries({ ...params, apikey: TWELVE_DATA_API_KEY }).forEach(([k,v]) => {
+    if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
+  });
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Market provider HTTP " + response.status);
+  const data = await response.json();
+  if (data.status === "error" || data.code) throw new Error(data.message || "Market provider error");
+  return data;
+}
+async function cachedMarket(key, loader) {
+  const hit = marketCache.get(key);
+  if (hit && Date.now() - hit.at < MARKET_CACHE_MS) return hit.data;
+  const data = await loader();
+  marketCache.set(key, { at: Date.now(), data });
+  return data;
+}
+function safeMarketParam(value, fallback = "") {
+  return String(value || fallback).trim().slice(0, 80).replace(/[^\w./:+ -]/g, "");
+}
+function marketDates(period) {
+  const end = new Date();
+  const start = new Date(end);
+  const days = ({ "24h": 2, "1m": 35, "6m": 190, "1y": 380, "5y": 1900, max: 9000 })[period] || 380;
+  start.setUTCDate(start.getUTCDate() - days);
+  return { start: start.toISOString().slice(0,10), end: end.toISOString().slice(0,10) };
+}
+app.get("/api/market/quote", async (req, res) => {
+  try {
+    const symbol = safeMarketParam(req.query.symbol);
+    const exchange = safeMarketParam(req.query.exchange);
+    if (!symbol) return res.status(400).json({ error: "Informe o símbolo do ativo." });
+    const key = "q:" + symbol + ":" + exchange;
+    const data = await cachedMarket(key, () => marketFetch("quote", {
+      symbol, exchange, interval: "1day", dp: 8, eod: true
+    }));
+    res.json({
+      symbol: data.symbol, name: data.name || data.symbol, exchange: data.exchange || exchange,
+      currency: data.currency || "USD", price: Number(data.close ?? data.price),
+      previousClose: Number(data.previous_close ?? 0),
+      change: Number(data.change ?? 0), percentChange: Number(data.percent_change ?? 0),
+      datetime: data.datetime || null, type: data.type || null
+    });
+  } catch (error) {
+    res.status(502).json({ error: error.message || "Não foi possível obter a cotação." });
+  }
+});
+app.get("/api/market/history", async (req, res) => {
+  try {
+    const symbol = safeMarketParam(req.query.symbol);
+    const exchange = safeMarketParam(req.query.exchange);
+    const period = safeMarketParam(req.query.period, "1y");
+    if (!symbol) return res.status(400).json({ error: "Informe o símbolo do ativo." });
+    const dates = marketDates(period);
+    const interval = period === "24h" ? "1h" : period === "5y" || period === "max" ? "1week" : "1day";
+    const key = ["h",symbol,exchange,period].join(":");
+    const data = await cachedMarket(key, () => marketFetch("time_series", {
+      symbol, exchange, interval, start_date: dates.start, end_date: dates.end,
+      outputsize: 5000, order: "ASC", timezone: "UTC", dp: 8, adjust: "all"
+    }));
+    const values = Array.isArray(data.values) ? data.values.reverse() : [];
+    res.json({
+      symbol: data.meta?.symbol || symbol, currency: data.meta?.currency || "USD",
+      interval, period, values: values.map(x => ({
+        datetime: x.datetime, close: Number(x.close), open: Number(x.open || x.close),
+        high: Number(x.high || x.close), low: Number(x.low || x.close), volume: Number(x.volume || 0)
+      })).filter(x => Number.isFinite(x.close)).reverse()
+    });
+  } catch (error) {
+    res.status(502).json({ error: error.message || "Não foi possível obter o histórico." });
+  }
+});
+app.get("/api/market/currency", async (req, res) => {
+  try {
+    const from = safeMarketParam(req.query.from, "USD").toUpperCase();
+    const to = safeMarketParam(req.query.to, "BRL").toUpperCase();
+    if (from === to) return res.json({ from, to, rate: 1 });
+    const data = await cachedMarket("fx:" + from + ":" + to, () => marketFetch("exchange_rate", { symbol: from + "/" + to, dp: 8 }));
+    res.json({ from, to, rate: Number(data.rate) });
+  } catch (error) {
+    res.status(502).json({ error: error.message || "Não foi possível obter o câmbio." });
+  }
 });
 
 app.get("/health", (req, res) => {
