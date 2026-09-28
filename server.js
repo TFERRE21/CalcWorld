@@ -340,6 +340,98 @@ function periodDescription(period) {
   })[period] || "último ano";
 }
 
+async function fetchBrapi(path, options = {}) {
+  const headers = { "Accept": "application/json", ...(options.headers || {}) };
+  if (process.env.BRAPI_API_KEY) headers.Authorization = "Bearer " + process.env.BRAPI_API_KEY;
+  const response = await fetch("https://brapi.dev" + path, { headers });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data?.message || "brapi indisponível");
+  return data;
+}
+
+app.get("/api/market/catalog", async (req, res) => {
+  try {
+    const type = String(req.query.type || "stock").trim().slice(0, 20);
+    const q = String(req.query.q || "").trim().slice(0, 100);
+    const page = Math.max(1, Number.parseInt(req.query.page || "1", 10) || 1);
+    const limit = Math.min(100, Math.max(20, Number.parseInt(req.query.limit || "50", 10) || 50));
+    const cacheKey = ["catalog", type, q.toLowerCase(), page, limit].join(":");
+    const cached = marketCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return res.json(cached.data);
+
+    let rows = [];
+    let total = null;
+    let hasNextPage = false;
+    let source = "OpenAI Web Search";
+
+    if (type === "crypto") {
+      try {
+        const data = await fetchBrapi("/api/v2/crypto/available" + (q ? "?search=" + encodeURIComponent(q) : ""));
+        rows = (Array.isArray(data.coins) ? data.coins : []).map(symbol => ({
+          symbol: String(symbol), name: String(symbol), exchange: "CRYPTO", type: "crypto", currency: "BRL"
+        }));
+        source = "brapi.dev";
+      } catch {}
+    } else if (type === "fx") {
+      try {
+        const data = await fetchBrapi("/api/v2/currency/available" + (q ? "?search=" + encodeURIComponent(q) : ""));
+        rows = (Array.isArray(data.currencies) ? data.currencies : []).map(x => ({
+          symbol: String(x.name || ""), name: String(x.currency || x.name || ""), exchange: "FOREX", type: "fx", currency: "BRL"
+        })).filter(x => x.symbol);
+        source = "brapi.dev / Banco Central";
+      } catch {}
+    } else {
+      const subtype = type === "fii" ? "fii" : type === "fund" ? "etf" : "stock";
+      try {
+        const params = new URLSearchParams({
+          limit: String(limit), page: String(page), subType: subtype,
+          sortBy: "name", sortOrder: "asc"
+        });
+        if (q) params.set("search", q);
+        const data = await fetchBrapi("/api/quote/list?" + params.toString());
+        rows = (Array.isArray(data.stocks) ? data.stocks : []).map(x => ({
+          symbol: String(x.stock || ""), name: String(x.name || x.stock || ""), exchange: "BVMF",
+          type: String(x.subType || x.type || type), currency: "BRL"
+        })).filter(x => x.symbol);
+        total = Number.isFinite(Number(data.totalCount)) ? Number(data.totalCount) : null;
+        hasNextPage = Boolean(data.hasNextPage);
+        source = "brapi.dev / B3";
+      } catch {}
+    }
+
+    if (!rows.length) {
+      const typeLabel = ({crypto:"criptomoedas",stock:"ações, BDRs e ETFs",fii:"fundos imobiliários e FIAGROs",fund:"ETFs e fundos",fx:"moedas e pares cambiais"})[type] || "ativos financeiros";
+      const prompt = [
+        "Monte um catálogo pesquisável de ativos financeiros reais.",
+        "Categoria: " + typeLabel,
+        q ? "Filtro: " + q : "Sem filtro.",
+        "Pesquise fontes de mercado, bolsas, emissores e provedores reconhecidos.",
+        "Retorne até " + limit + " ativos confirmados nesta página.",
+        "Formato JSON: {"data":[{"symbol":"...","name":"...","exchange":"...","type":"...","country":"...","currency":"..."}],"hasNextPage":false}",
+        "Não invente símbolos e não repita ativos."
+      ].join("\n");
+      const data = await openAIJson(prompt, cacheKey + ":ai", 30 * 60 * 1000);
+      rows = Array.isArray(data.data) ? data.data.slice(0, limit) : [];
+      hasNextPage = Boolean(data.hasNextPage);
+    }
+
+    const payload = {
+      data: rows.slice(0, limit),
+      page,
+      limit,
+      total,
+      hasNextPage,
+      source,
+      fetchedAt: new Date().toISOString()
+    };
+    marketCache.set(cacheKey, { expiresAt: Date.now() + 15 * 60 * 1000, data: payload });
+    res.json(payload);
+  } catch (error) {
+    console.error("market catalog error:", error.message);
+    res.status(502).json({ error: error.message || "Não foi possível carregar o catálogo." });
+  }
+});
+
 app.get("/api/market/search", async (req, res) => {
   try {
     const q = String(req.query.q || "").trim().slice(0, 100);
