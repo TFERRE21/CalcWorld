@@ -1,4 +1,4 @@
-name: Deploy CalcWorld to GitHub Pages
+name: Build and Sync CalcWorld
 
 on:
   schedule:
@@ -9,8 +9,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: "pages"
@@ -59,12 +57,3 @@ jobs:
             git commit -m "chore: sync generated calculator pages [skip ci]"
             git push
           fi
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "."
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
