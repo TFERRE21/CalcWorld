@@ -54,7 +54,7 @@
     updateButton();
     document.addEventListener("click", function (event) {
       const button = event.target.closest && event.target.closest("#themeToggle");
-      if (!button) return;
+      if (!button || button.hasAttribute("onclick")) return;
       event.preventDefault();
       event.stopPropagation();
       window.toggleCalcWorldTheme();
