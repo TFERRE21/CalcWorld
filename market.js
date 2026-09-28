@@ -214,7 +214,9 @@
   $("backtestAmount").oninput=()=>renderBacktest(state.history);
   $("backtestDate").onchange=()=>renderBacktest(state.history);
   $("backtestButton").onclick=()=>renderBacktest(state.history);
-  $("catalogLoad").onclick=()=>loadCatalog(true);\n  $("catalogFilter").oninput=()=>renderCatalog();\n  $("catalogSort").onchange=()=>renderCatalog();
+  $("catalogLoad").onclick=()=>loadCatalog(true);
+  $("catalogFilter").oninput=()=>renderCatalog();
+  $("catalogSort").onchange=()=>renderCatalog();
   periodButtons();
   presetList("crypto");
   loadAll();
