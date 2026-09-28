@@ -354,9 +354,9 @@ app.get("/api/market/history", async (req, res) => {
     const key = ["h",symbol,exchange,period].join(":");
     const data = await cachedMarket(key, () => marketFetch("time_series", {
       symbol, exchange, interval, start_date: dates.start, end_date: dates.end,
-      outputsize: 5000, order: "ASC", timezone: "UTC", dp: 8, adjust: "all"
+      outputsize: 5000, order: "ASC", timezone: "UTC", dp: 8, ...(symbol.includes("/") ? {} : { adjust: "all" })
     }));
-    const values = Array.isArray(data.values) ? [...data.values].reverse() : [];
+    const values = Array.isArray(data.values) ? data.values : [];
     res.json({
       symbol: data.meta?.symbol || symbol, currency: data.meta?.currency || "USD",
       interval, period, values: values.map(x => ({
