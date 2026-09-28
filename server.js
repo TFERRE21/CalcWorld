@@ -297,6 +297,32 @@ function marketDates(period) {
   start.setUTCDate(start.getUTCDate() - days);
   return { start: start.toISOString().slice(0,10), end: end.toISOString().slice(0,10) };
 }
+app.get("/api/market/search", async (req, res) => {
+  try {
+    const q = String(req.query.q || "").trim().slice(0, 80);
+    if (!q) return res.status(400).json({ error: "Informe um ativo para pesquisar." });
+    const key = "market-search:" + q.toLowerCase();
+    const cached = marketCache.get(key);
+    if (cached && cached.expiresAt > Date.now()) return res.json(cached.data);
+    const data = await marketFetch("symbol_search", { symbol: q, outputsize: 30 });
+    const result = {
+      data: (data.data || []).map(x => ({
+        symbol: x.symbol,
+        name: x.instrument_name,
+        exchange: x.exchange,
+        type: x.instrument_type,
+        country: x.country,
+        currency: x.currency
+      }))
+    };
+    marketCache.set(key, { expiresAt: Date.now() + 10 * 60 * 1000, data: result });
+    res.json(result);
+  } catch (error) {
+    console.error("market search error:", error.message);
+    res.status(502).json({ error: "Não foi possível pesquisar esse ativo agora." });
+  }
+});
+
 app.get("/api/market/quote", async (req, res) => {
   try {
     const symbol = safeMarketParam(req.query.symbol);
