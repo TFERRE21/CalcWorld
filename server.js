@@ -342,17 +342,22 @@ function periodDescription(period) {
 
 app.get("/api/market/search", async (req, res) => {
   try {
-    const q = String(req.query.q || "").trim().slice(0, 80);
+    const q = String(req.query.q || "").trim().slice(0, 100);
+    const type = String(req.query.type || "").trim().slice(0, 30);
     if (!q) return res.status(400).json({ error: "Informe um ativo para pesquisar." });
+    const typeLabel = ({crypto:"criptomoedas",stock:"ações, BDRs e ETFs",fii:"fundos imobiliários e FIAGROs",fund:"ETFs e fundos",fx:"moedas e pares cambiais"})[type] || "ativos financeiros";
     const prompt = [
-      "Encontre ativos financeiros que correspondam à busca abaixo.",
+      "Pesquise na web ativos financeiros reais que correspondam à busca.",
       "Busca: " + q,
+      "Categoria solicitada: " + typeLabel,
+      "Não fique limitado a uma lista pré-cadastrada. Procure em fontes de mercado, bolsas, emissores e provedores financeiros reconhecidos.",
+      "Para uma busca por ticker ou nome, retorne todas as correspondências relevantes que conseguir confirmar, até o limite técnico.",
       "Retorne JSON exatamente neste formato:",
       '{"data":[{"symbol":"...","name":"...","exchange":"...","type":"...","country":"...","currency":"..."}]}',
-      "Máximo 12 resultados. Não crie símbolos. Inclua apenas ativos que você conseguiu confirmar em fontes da web."
+      "Máximo 50 resultados. Não crie símbolos. Inclua somente ativos confirmados."
     ].join("\n");
-    const data = await openAIJson(prompt, "ai-search:" + q.toLowerCase().replace(/\s+/g, " "), 10 * 60 * 1000);
-    res.json({ data: Array.isArray(data.data) ? data.data.slice(0, 12) : [] });
+    const data = await openAIJson(prompt, "ai-search:" + type + ":" + q.toLowerCase().replace(/\s+/g, " "), 10 * 60 * 1000);
+    res.json({ data: Array.isArray(data.data) ? data.data.slice(0, 50) : [] });
   } catch (error) {
     console.error("market search error:", error.message);
     res.status(502).json({ error: error.message || "Não foi possível pesquisar esse ativo agora." });
