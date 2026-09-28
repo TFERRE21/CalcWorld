@@ -247,8 +247,7 @@ app.get("/api/admin/analytics", requireAdmin, (req, res) => {
 
   const seven = last30.slice(-7);
   const todayEntry = data.days[today] || {};
-  const yesterdayKey = toDay(-1);
-  const yesterdayEntry = data.days[yesterdayKey] || {};
+  const yesterdayKey = toDay(-1);  const yesterdayEntry = data.days[yesterdayKey] || {};
   const allEntries = days.map(k => data.days[k]);
   const total = aggregate(allEntries);
   const topPages = Object.entries(todayEntry.pages || {})
@@ -497,8 +496,7 @@ async function fetchFastMarketOverview(symbol, exchange, type, displayCurrency, 
     percentChange: Number.isFinite(percentChange) ? percentChange : 0,
     datetime: item.regularMarketTime || quoteData.requestedAt || null,
     values,
-    sourceNote: "Cotação consultada diretamente pela API de mercado.",
-    sources: [{title:"brapi.dev",url:"https://brapi.dev/docs"}],
+    sourceNote: "Cotação consultada diretamente pela API de mercado.",    sources: [{title:"brapi.dev",url:"https://brapi.dev/docs"}],
     provider:"brapi.dev",
     fetchedAt:new Date().toISOString()
   };
@@ -544,11 +542,7 @@ app.get("/api/market/overview", async (req, res) => {
     const requestedType = safeMarketParam(req.query.type, "").toLowerCase();
     if (!symbol) return res.status(400).json({ error: "Informe o símbolo do ativo." });
 
-    const prompt = [
-      "Pesquise na web o ativo financeiro identificado abaixo e monte um retrato de mercado atual + histórico.",
-      "Ativo: " + symbol,
-      "Mercado/bolsa informado: " + (exchange || "não informado"),
-      "Perí    const detectedType = requestedType || (exchange === "CRYPTO" ? "crypto" : typeFromSymbol(symbol));
+    const detectedType = requestedType || (exchange.toUpperCase() === "CRYPTO" ? "crypto" : typeFromSymbol(symbol));
     try {
       const fast = await fetchFastMarketOverview(symbol, exchange, detectedType, displayCurrency, period);
       if (fast) return res.json(fast);
@@ -556,7 +550,11 @@ app.get("/api/market/overview", async (req, res) => {
       console.warn("market fast path fallback:", fastError.message);
     }
 
-odo solicitado: " + periodDescription(period),
+    const prompt = [
+      "Pesquise na web o ativo financeiro identificado abaixo e monte um retrato de mercado atual + histórico.",
+      "Ativo: " + symbol,
+      "Mercado/bolsa informado: " + (exchange || "não informado"),
+      "Período solicitado: " + periodDescription(period),
       "Moeda de exibição solicitada: " + displayCurrency,
       "",
       "REGRAS IMPORTANTES:",
@@ -748,7 +746,6 @@ app.post("/api/research", async (req, res) => {
     const cacheKey = question.toLowerCase().replace(/\s+/g, " ");
     const cachedResearch = researchCache.get(cacheKey);
     if (cachedResearch && cachedResearch.expiresAt > now) return res.json(cachedResearch.data);
-
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
