@@ -257,3 +257,16 @@ html[data-theme="dark"] .market-periods button{background:#1a2639;color:#aab7cc}
 html[data-theme="dark"] .market-periods button.active{background:#173b70;color:#bfdbfe}
 @media(max-width:1000px){.asset-presets{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.asset-presets{grid-template-columns:repeat(2,minmax(0,1fr));max-height:320px}}
+
+.seo-guide{margin-top:34px;padding:30px 0;border-top:1px solid var(--line)}
+.seo-guide h2{font-size:28px;line-height:1.18;letter-spacing:-.025em;margin:30px 0 10px}
+.seo-guide h2:first-child{margin-top:0}
+.seo-guide p,.seo-guide li{color:var(--muted);font-size:16px}
+.seo-guide ul{padding-left:22px}
+.seo-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0 28px}
+.seo-links a{display:block;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--accent);font-weight:800;text-decoration:none}
+.seo-links a:hover{border-color:#93c5fd;background:var(--soft)}
+.seo-faq details{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin:9px 0;padding:15px 17px}
+.seo-faq summary{cursor:pointer;font-weight:800;color:var(--text)}
+.seo-faq p{margin:9px 0 0}
+@media(max-width:600px){.seo-links{grid-template-columns:1fr}}
