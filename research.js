@@ -46,7 +46,7 @@
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Não foi possível pesquisar.");
       result.className = "ai-research-result";
-      result.innerHTML = "<div class=\"ai-answer\">" + format(data.answer) + "</div>";
+      result.innerHTML = "<div class=\"ai-answer\">" + format(data.answer) + "</div>" + ((data.sources||[]).length ? "<div class=\"ai-sources\"><strong>Fontes consultadas</strong>" + data.sources.map(function(s){return "<a href=\"" + esc(s.url) + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + esc(s.title) + "</a>";}).join("") + "</div>" : "");
     } catch (error) {
       result.className = "ai-research-result error";
       result.innerHTML = "<strong>Pesquisa indisponível</strong><p>" + esc(error.message) + "</p><small>Verifique se OPENAI_API_KEY está configurada no servidor.</small>";
