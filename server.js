@@ -10,7 +10,6 @@ const ANALYTICS_FILE = process.env.ANALYTICS_FILE || path.join(ROOT, ".data", "a
 const ADMIN_EMAIL = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 const ADMIN_PASSWORD_HASH = String(process.env.ADMIN_PASSWORD_HASH || "").trim();
 const SESSION_SECRET = String(process.env.SESSION_SECRET || "").trim();
-const TWELVE_DATA_API_KEY = String(process.env.TWELVE_DATA_API_KEY || "").trim();
 const OPENAI_API_KEY = String(process.env.OPENAI_API_KEY || "").trim();
 // CalcWorld deployment marker: keep ICP webhook releases aligned with main.
 const MARKET_CACHE_MS = 60 * 1000;
@@ -271,58 +270,158 @@ app.get("/api/admin/analytics", requireAdmin, (req, res) => {
 });
 
 
-async function marketFetch(endpoint, params) {
-  if (!TWELVE_DATA_API_KEY) throw new Error("TWELVE_DATA_API_KEY not configured");
-  const url = new URL("https://api.twelvedata.com/" + endpoint);
-  Object.entries({ ...params, apikey: TWELVE_DATA_API_KEY }).forEach(([k,v]) => {
-    if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
-  });
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Market provider HTTP " + response.status);
-  const data = await response.json();
-  if (data.status === "error" || data.code) throw new Error(data.message || "Market provider error");
-  return data;
-}
-async function cachedMarket(key, loader) {
-  const hit = marketCache.get(key);
-  if (hit && Date.now() - hit.at < MARKET_CACHE_MS) return hit.data;
-  const data = await loader();
-  marketCache.set(key, { at: Date.now(), data });
-  return data;
-}
 function safeMarketParam(value, fallback = "") {
-  return String(value || fallback).trim().slice(0, 80).replace(/[^\w./:+ -]/g, "");
+  return String(value || fallback).trim().slice(0, 120).replace(/[^\w./:+ -]/g, "");
 }
-function marketDates(period) {
-  const end = new Date();
-  const start = new Date(end);
-  const days = ({ "24h": 2, "1m": 35, "6m": 190, "1y": 380, "5y": 1900, max: 9000 })[period] || 380;
-  start.setUTCDate(start.getUTCDate() - days);
-  return { start: start.toISOString().slice(0,10), end: end.toISOString().slice(0,10) };
+async function openAIJson(prompt, cacheKey, ttl = MARKET_CACHE_MS) {
+  if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not configured");
+  const cached = marketCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.data;
+
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + OPENAI_API_KEY
+    },
+    body: JSON.stringify({
+      model: "gpt-5.6-luna",
+      tools: [{ type: "web_search" }],
+      input: [
+        {
+          role: "developer",
+          content: "Você é o motor de dados de mercado do CalcWorld. Pesquise a web antes de responder. Use fontes atuais e confiáveis, priorizando fontes oficiais, bolsas, emissores e provedores financeiros reconhecidos. Nunca invente preço, data, variação ou série histórica. Se não conseguir confirmar um dado, use null ou lista vazia. Responda SOMENTE com JSON válido, sem markdown, sem comentários e sem texto fora do JSON."
+        },
+        { role: "user", content: prompt }
+      ],
+      max_output_tokens: 5000,
+      store: false
+    })
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    console.error("OpenAI market error:", data?.error?.message || response.status);
+    throw new Error(data?.error?.message || "OpenAI não conseguiu consultar os dados de mercado.");
+  }
+
+  const raw = data.output_text || data.output
+    ?.filter(item => item.type === "message")
+    ?.flatMap(item => item.content || [])
+    ?.filter(part => part.type === "output_text")
+    ?.map(part => part.text)
+    ?.join("\n") || "";
+
+  const cleaned = String(raw).trim()
+    .replace(new RegExp("^" + String.fromCharCode(96,96,96) + "json\\s*", "i"), "")
+    .replace(new RegExp(String.fromCharCode(96,96,96) + "$"), "")
+    .trim();
+
+  let parsed;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    throw new Error("A resposta da pesquisa de mercado não veio em formato válido.");
+  }
+
+  const result = { ...parsed, provider: "OpenAI Web Search", fetchedAt: new Date().toISOString() };
+  marketCache.set(cacheKey, { expiresAt: Date.now() + ttl, data: result });
+  return result;
 }
+
+function periodDescription(period) {
+  return ({
+    "24h": "últimas 24 horas, com pontos horários quando disponíveis",
+    "1m": "último mês, com pontos diários ou semanais representativos",
+    "6m": "últimos 6 meses, com pontos semanais ou diários representativos",
+    "1y": "último ano, com pontos semanais ou mensais representativos",
+    "5y": "últimos 5 anos, com pontos mensais ou trimestrais representativos",
+    "max": "todo o histórico disponível, com pontos representativos ao longo de toda a série"
+  })[period] || "último ano";
+}
+
 app.get("/api/market/search", async (req, res) => {
   try {
     const q = String(req.query.q || "").trim().slice(0, 80);
     if (!q) return res.status(400).json({ error: "Informe um ativo para pesquisar." });
-    const key = "market-search:" + q.toLowerCase();
-    const cached = marketCache.get(key);
-    if (cached && cached.expiresAt > Date.now()) return res.json(cached.data);
-    const data = await marketFetch("symbol_search", { symbol: q, outputsize: 30 });
-    const result = {
-      data: (data.data || []).map(x => ({
-        symbol: x.symbol,
-        name: x.instrument_name,
-        exchange: x.exchange,
-        type: x.instrument_type,
-        country: x.country,
-        currency: x.currency
-      }))
-    };
-    marketCache.set(key, { expiresAt: Date.now() + 10 * 60 * 1000, data: result });
-    res.json(result);
+    const prompt = [
+      "Encontre ativos financeiros que correspondam à busca abaixo.",
+      "Busca: " + q,
+      "Retorne JSON exatamente neste formato:",
+      '{"data":[{"symbol":"...","name":"...","exchange":"...","type":"...","country":"...","currency":"..."}]}',
+      "Máximo 12 resultados. Não crie símbolos. Inclua apenas ativos que você conseguiu confirmar em fontes da web."
+    ].join("\n");
+    const data = await openAIJson(prompt, "ai-search:" + q.toLowerCase().replace(/\s+/g, " "), 10 * 60 * 1000);
+    res.json({ data: Array.isArray(data.data) ? data.data.slice(0, 12) : [] });
   } catch (error) {
     console.error("market search error:", error.message);
-    res.status(502).json({ error: "Não foi possível pesquisar esse ativo agora." });
+    res.status(502).json({ error: error.message || "Não foi possível pesquisar esse ativo agora." });
+  }
+});
+
+app.get("/api/market/overview", async (req, res) => {
+  try {
+    const symbol = safeMarketParam(req.query.symbol);
+    const exchange = safeMarketParam(req.query.exchange);
+    const period = safeMarketParam(req.query.period, "1y");
+    const displayCurrency = safeMarketParam(req.query.currency, "BRL").toUpperCase();
+    if (!symbol) return res.status(400).json({ error: "Informe o símbolo do ativo." });
+
+    const prompt = [
+      "Pesquise na web o ativo financeiro identificado abaixo e monte um retrato de mercado atual + histórico.",
+      "Ativo: " + symbol,
+      "Mercado/bolsa informado: " + (exchange || "não informado"),
+      "Período solicitado: " + periodDescription(period),
+      "Moeda de exibição solicitada: " + displayCurrency,
+      "",
+      "REGRAS IMPORTANTES:",
+      "1. O preço atual deve ser o último preço verificável encontrado na web. Informe a data/hora da cotação.",
+      "2. previousClose deve ser o fechamento anterior verificável. percentChange deve ser a variação percentual entre preço atual e fechamento anterior quando possível.",
+      "3. Para o histórico, forneça pontos cronológicos REAIS encontrados ou derivados de dados históricos confiáveis. Não invente pontos para preencher o gráfico. Use entre 12 e 40 pontos, conforme a disponibilidade.",
+      "4. Cada ponto deve ter datetime ISO ou YYYY-MM-DD e close numérico.",
+      "5. Se a fonte estiver em outra moeda, converta para " + displayCurrency + " somente se conseguir confirmar uma taxa cambial atual. Informe que a conversão exibida usa câmbio de referência atual.",
+      "6. Para cripto, ações, FIIs e ETFs, identifique claramente o ativo e o mercado. Para câmbio, trate o par como o próprio ativo.",
+      "7. Se não for possível confirmar preço ou histórico, retorne null/lista vazia em vez de estimar.",
+      "",
+      "Retorne SOMENTE este JSON:",
+      '{"symbol":"...","name":"...","exchange":"...","type":"...","currency":"BRL","price":0,"previousClose":0,"change":0,"percentChange":0,"datetime":"...","values":[{"datetime":"...","close":0,"open":0,"high":0,"low":0,"volume":0}],"sourceNote":"...","sources":[{"title":"...","url":"https://..."}]}'
+    ].join("\n");
+
+    const data = await openAIJson(
+      prompt,
+      ["ai-market", symbol, exchange, period, displayCurrency].join(":"),
+      MARKET_CACHE_MS
+    );
+
+    const values = Array.isArray(data.values) ? data.values.map(x => ({
+      datetime: String(x.datetime || ""),
+      close: Number(x.close),
+      open: Number(x.open ?? x.close),
+      high: Number(x.high ?? x.close),
+      low: Number(x.low ?? x.close),
+      volume: Number(x.volume || 0)
+    })).filter(x => x.datetime && Number.isFinite(x.close)) : [];
+
+    res.json({
+      symbol: data.symbol || symbol,
+      name: data.name || symbol,
+      exchange: data.exchange || exchange,
+      type: data.type || null,
+      currency: data.currency || displayCurrency,
+      price: Number.isFinite(Number(data.price)) ? Number(data.price) : null,
+      previousClose: Number.isFinite(Number(data.previousClose)) ? Number(data.previousClose) : 0,
+      change: Number.isFinite(Number(data.change)) ? Number(data.change) : 0,
+      percentChange: Number.isFinite(Number(data.percentChange)) ? Number(data.percentChange) : 0,
+      datetime: data.datetime || null,
+      values,
+      sourceNote: data.sourceNote || "",
+      sources: Array.isArray(data.sources) ? data.sources.slice(0, 8) : [],
+      provider: "OpenAI Web Search",
+      fetchedAt: data.fetchedAt
+    });
+  } catch (error) {
+    console.error("market overview error:", error.message);
+    res.status(502).json({ error: error.message || "Não foi possível obter os dados de mercado." });
   }
 });
 
@@ -330,54 +429,72 @@ app.get("/api/market/quote", async (req, res) => {
   try {
     const symbol = safeMarketParam(req.query.symbol);
     const exchange = safeMarketParam(req.query.exchange);
+    const currency = safeMarketParam(req.query.currency, "BRL").toUpperCase();
     if (!symbol) return res.status(400).json({ error: "Informe o símbolo do ativo." });
-    const key = "q:" + symbol + ":" + exchange;
-    const data = await cachedMarket(key, () => marketFetch("quote", {
-      symbol, exchange, interval: "1day", dp: 8, eod: true
-    }));
-    res.json({
-      symbol: data.symbol, name: data.name || data.symbol, exchange: data.exchange || exchange,
-      currency: data.currency || "USD", price: Number(data.close ?? data.price),
-      previousClose: Number(data.previous_close ?? 0),
-      change: Number(data.change ?? 0), percentChange: Number(data.percent_change ?? 0),
-      datetime: data.datetime || null, type: data.type || null
-    });
+    const data = await openAIJson(
+      [
+        "Pesquise o preço atual verificável do ativo " + symbol + (exchange ? " na bolsa " + exchange : "") + ".",
+        "Retorne SOMENTE JSON no formato:",
+        '{"symbol":"...","name":"...","exchange":"...","currency":"' + currency + '","price":0,"previousClose":0,"change":0,"percentChange":0,"datetime":"...","sourceNote":"..."}',
+        "Não invente valores. Se não conseguir confirmar, use null."
+      ].join("\n"),
+      ["ai-quote", symbol, exchange, currency].join(":"),
+      MARKET_CACHE_MS
+    );
+    res.json({ ...data, provider: "OpenAI Web Search" });
   } catch (error) {
     res.status(502).json({ error: error.message || "Não foi possível obter a cotação." });
   }
 });
+
 app.get("/api/market/history", async (req, res) => {
   try {
     const symbol = safeMarketParam(req.query.symbol);
     const exchange = safeMarketParam(req.query.exchange);
     const period = safeMarketParam(req.query.period, "1y");
+    const currency = safeMarketParam(req.query.currency, "BRL").toUpperCase();
     if (!symbol) return res.status(400).json({ error: "Informe o símbolo do ativo." });
-    const dates = marketDates(period);
-    const interval = period === "24h" ? "1h" : period === "5y" || period === "max" ? "1week" : "1day";
-    const key = ["h",symbol,exchange,period].join(":");
-    const data = await cachedMarket(key, () => marketFetch("time_series", {
-      symbol, exchange, interval, start_date: dates.start, end_date: dates.end,
-      outputsize: 5000, order: "ASC", timezone: "UTC", dp: 8, ...(symbol.includes("/") ? {} : { adjust: "all" })
-    }));
-    const values = Array.isArray(data.values) ? data.values : [];
+    const data = await openAIJson(
+      [
+        "Pesquise dados históricos verificáveis do ativo " + symbol + (exchange ? " na bolsa " + exchange : "") + ".",
+        "Período: " + periodDescription(period) + ".",
+        "Retorne SOMENTE JSON no formato:",
+        '{"symbol":"...","currency":"' + currency + '","interval":"' + period + '","values":[{"datetime":"YYYY-MM-DD","close":0}],"sourceNote":"..."}',
+        "Use entre 12 e 40 pontos reais e cronológicos. Não invente dados."
+      ].join("\n"),
+      ["ai-history", symbol, exchange, period, currency].join(":"),
+      MARKET_CACHE_MS
+    );
     res.json({
-      symbol: data.meta?.symbol || symbol, currency: data.meta?.currency || "USD",
-      interval, period, values: values.map(x => ({
-        datetime: x.datetime, close: Number(x.close), open: Number(x.open || x.close),
-        high: Number(x.high || x.close), low: Number(x.low || x.close), volume: Number(x.volume || 0)
-      })).filter(x => Number.isFinite(x.close))
+      symbol: data.symbol || symbol,
+      currency: data.currency || currency,
+      interval: period,
+      period,
+      values: Array.isArray(data.values) ? data.values.map(x => ({ datetime: String(x.datetime || ""), close: Number(x.close) })).filter(x => x.datetime && Number.isFinite(x.close)) : [],
+      sourceNote: data.sourceNote || "",
+      provider: "OpenAI Web Search"
     });
   } catch (error) {
     res.status(502).json({ error: error.message || "Não foi possível obter o histórico." });
   }
 });
+
 app.get("/api/market/currency", async (req, res) => {
   try {
     const from = safeMarketParam(req.query.from, "USD").toUpperCase();
     const to = safeMarketParam(req.query.to, "BRL").toUpperCase();
-    if (from === to) return res.json({ from, to, rate: 1 });
-    const data = await cachedMarket("fx:" + from + ":" + to, () => marketFetch("exchange_rate", { symbol: from + "/" + to, dp: 8 }));
-    res.json({ from, to, rate: Number(data.rate) });
+    if (from === to) return res.json({ from, to, rate: 1, provider: "OpenAI Web Search" });
+    const data = await openAIJson(
+      [
+        "Pesquise a taxa de câmbio atual verificável de " + from + "/" + to + ".",
+        "Retorne SOMENTE JSON no formato:",
+        '{"from":"' + from + '","to":"' + to + '","rate":0,"datetime":"..."}',
+        "Não invente. Se não conseguir confirmar, use null."
+      ].join("\n"),
+      "ai-fx:" + from + ":" + to,
+      MARKET_CACHE_MS
+    );
+    res.json({ from, to, rate: Number(data.rate), datetime: data.datetime || null, provider: "OpenAI Web Search" });
   } catch (error) {
     res.status(502).json({ error: error.message || "Não foi possível obter o câmbio." });
   }
