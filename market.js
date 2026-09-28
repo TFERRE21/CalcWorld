@@ -253,7 +253,7 @@
   $("assetType").onchange=e=>{ $("symbol").value=""; $("exchange").value=""; $("symbolSuggestions").innerHTML=""; state.searchResults=[]; presetList(e.target.value); loadCatalog(true); };
   $("currencyDisplay").onchange=e=>{state.currency=e.target.value;if(state.quote)loadAll();};
   $("marketSearch").onsubmit=e=>{e.preventDefault();loadAll()};
-  $("symbol").addEventListener("input",()=>{searchSymbols();});
+  let searchTimer=null;\n  $("symbol").addEventListener("input",()=>{\n    clearTimeout(searchTimer);\n    searchTimer=setTimeout(()=>searchSymbols(),250);\n  });
   $("backtestDate").value=new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().slice(0,10);
   // A simulação histórica precisa consultar o endpoint dedicado, inclusive para datas antigas.
   $("backtestButton").onclick=runBacktest;
