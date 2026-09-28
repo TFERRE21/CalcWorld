@@ -447,6 +447,54 @@ async function fetchFastCryptoOverview(symbol, displayCurrency, period) {
   return {symbol:coin+"/"+displayCurrency,name:item.coinName||coin,exchange:"CRYPTO",type:"crypto",currency:item.currency||displayCurrency,price:Number(item.regularMarketPrice),previousClose:Number.isFinite(previousClose)?previousClose:0,change:Number(item.regularMarketChange||0),percentChange:Number(item.regularMarketChangePercent||0),datetime:item.regularMarketTime||data.requestedAt||null,values,sourceNote:"Cotação e histórico consultados diretamente na brapi.dev.",sources:[{title:"brapi.dev",url:"https://brapi.dev/docs/criptomoedas"}],provider:"brapi.dev",fetchedAt:new Date().toISOString()};
 }
 
+function typeFromSymbol(symbol) {
+  const s = String(symbol || "").toUpperCase();
+  if (/11$/.test(s)) return "fii";
+  return "stock";
+}
+
+async function fetchFastMarketOverview(symbol, exchange, type, displayCurrency, period) {
+  const clean = String(symbol || "").trim().toUpperCase();
+  if (!clean) return null;
+  if (type === "crypto" || clean.includes("/")) {
+    return fetchFastCryptoOverview(clean, displayCurrency, period);
+  }
+  const ranges = {"24h":["1d","1h"],"1m":["1mo","1d"],"6m":["6mo","1d"],"1y":["1y","1wk"],"5y":["5y","1mo"],"max":["5y","1mo"]};
+  const [range, interval] = ranges[period] || ranges["1y"];
+  let quoteData;
+  try {
+    quoteData = await fetchBrapi("/api/quote/" + encodeURIComponent(clean) + "?range=" + range + "&interval=" + interval);
+  } catch {
+    quoteData = await fetchBrapi("/api/v2/stocks/quote?symbols=" + encodeURIComponent(clean));
+  }
+  const item = Array.isArray(quoteData.results) ? (quoteData.results[0]?.data || quoteData.results[0]) : (Array.isArray(quoteData.stocks) ? quoteData.stocks[0] : null);
+  if (!item) return null;
+  const price = Number(item.regularMarketPrice ?? item.close);
+  if (!Number.isFinite(price)) return null;
+  const previousClose = Number(item.regularMarketPreviousClose ?? item.previousClose ?? (price - Number(item.regularMarketChange || item.change || 0)));
+  const change = Number(item.regularMarketChange ?? item.change ?? 0);
+  const percentChange = Number(item.regularMarketChangePercent ?? item.changePercent ?? 0);
+  const history = Array.isArray(item.historicalDataPrice) ? item.historicalDataPrice : [];
+  const values = history.map(x => ({datetime:String(x.date || x.datetime || x.timestamp || ""),close:Number(x.close ?? x.adjustedClose)})).filter(x=>x.datetime&&Number.isFinite(x.close));
+  return {
+    symbol: clean,
+    name: item.shortName || item.longName || item.name || clean,
+    exchange: exchange || "BVMF",
+    type: type || item.type || item.subType || "stock",
+    currency: item.currency || displayCurrency || "BRL",
+    price,
+    previousClose: Number.isFinite(previousClose) ? previousClose : 0,
+    change: Number.isFinite(change) ? change : 0,
+    percentChange: Number.isFinite(percentChange) ? percentChange : 0,
+    datetime: item.regularMarketTime || quoteData.requestedAt || null,
+    values,
+    sourceNote: "Cotação consultada diretamente pela API de mercado.",
+    sources: [{title:"brapi.dev",url:"https://brapi.dev/docs"}],
+    provider:"brapi.dev",
+    fetchedAt:new Date().toISOString()
+  };
+}
+
 app.get("/api/market/search", async (req, res) => {
   try {
     const q = String(req.query.q || "").trim().slice(0, 100);
@@ -486,20 +534,19 @@ app.get("/api/market/overview", async (req, res) => {
     const displayCurrency = safeMarketParam(req.query.currency, "BRL").toUpperCase();
     if (!symbol) return res.status(400).json({ error: "Informe o símbolo do ativo." });
 
-    if (symbol.includes("/") && ["USD","BRL","EUR","GBP","JPY","CAD","AUD"].includes(symbol.toUpperCase().split("/")[1])) {
-      try {
-        const fast = await fetchFastCryptoOverview(symbol, displayCurrency, period);
-        if (fast) return res.json(fast);
-      } catch (fastError) {
-        console.warn("crypto fast path fallback:", fastError.message);
-      }
-    }
-
     const prompt = [
       "Pesquise na web o ativo financeiro identificado abaixo e monte um retrato de mercado atual + histórico.",
       "Ativo: " + symbol,
       "Mercado/bolsa informado: " + (exchange || "não informado"),
-      "Período solicitado: " + periodDescription(period),
+      "Perí    const detectedType = symbol.includes("/") ? "crypto" : (exchange === "CRYPTO" ? "crypto" : typeFromSymbol(symbol));
+    try {
+      const fast = await fetchFastMarketOverview(symbol, exchange, detectedType, displayCurrency, period);
+      if (fast) return res.json(fast);
+    } catch (fastError) {
+      console.warn("market fast path fallback:", fastError.message);
+    }
+
+odo solicitado: " + periodDescription(period),
       "Moeda de exibição solicitada: " + displayCurrency,
       "",
       "REGRAS IMPORTANTES:",
