@@ -191,24 +191,28 @@
     if(!state.quote){$("backtestResult").innerHTML="Primeiro consulte um ativo.";return;}
     $("backtestButton").disabled=true;
     $("backtestButton").textContent="Calculando…";
-    $("backtestResult").innerHTML="Buscando o histórico necessário para a data informada…";
+    $("backtestResult").innerHTML="Pesquisando o preço da data escolhida…";
     try{
-      let values=state.history||[];
-      const firstDate=values.length?String(values[0].datetime||"").slice(0,10):"";
-      if(!firstDate || date<firstDate){
-        const displayCurrency=$("currencyDisplay").value;
-        const q=await getJSON("/api/market/overview?symbol="+encodeURIComponent(state.quote.symbol)+"&exchange="+encodeURIComponent(state.quote.exchange||"")+"&period=max&currency="+encodeURIComponent(displayCurrency));
-        if(!q || !Array.isArray(q.values) || !q.values.length) throw new Error("O provedor não retornou histórico suficiente para essa data.");
-        values=q.values;
-        state.history=values;
-        drawChart(values);
-      }
-      const ok=renderBacktest(values);
-      state.backtestRan=ok;
-      if(!ok) return;
+      const displayCurrency=$("currencyDisplay").value;
+      const q=await getJSON("/api/market/backtest?symbol="+encodeURIComponent(state.quote.symbol)+"&exchange="+encodeURIComponent(state.quote.exchange||"")+"&date="+encodeURIComponent(date)+"&currency="+encodeURIComponent(displayCurrency));
+      const startClose=Number(q.start?.close), endClose=Number(q.end?.close);
+      if(!Number.isFinite(startClose)||!Number.isFinite(endClose)||startClose<=0) throw new Error("Não foi possível confirmar os preços históricos.");
+      const currentValue=amount*(endClose/startClose);
+      const result=(currentValue/amount-1)*100;
+      const requestedDate=String(q.requestedDate||date);
+      const usedDate=String(q.start?.date||date).slice(0,10);
+      const endDate=String(q.end?.date||"").slice(0,10);
+      const holdingDays=Math.max(0,Math.round((new Date(endDate)-new Date(usedDate))/86400000));
+      const eventList=Array.isArray(q.events)?q.events.filter(x=>x&&x.date).slice(0,8):[];
+      const eventsHtml=eventList.length
+        ? '<div class="backtest-events"><small>Eventos encontrados no período</small>'+eventList.map(x=>'<span>'+esc(String(x.date).slice(0,10))+' • '+esc(x.type||"evento")+(x.description?" — "+esc(x.description):"")+'</span>').join("")+'</div>'
+        : "";
+      $("backtestResult").innerHTML='<div><small>Se você tivesse investido</small><strong>'+money(amount,q.currency||displayCurrency)+'</strong></div><div><small>Data solicitada</small><strong>'+esc(requestedDate)+'</strong></div><div><small>Data usada</small><strong>'+esc(usedDate)+'</strong></div><div><small>Preço de entrada</small><strong>'+money(startClose,q.currency||displayCurrency)+'</strong></div><div><small>Valor estimado hoje</small><strong>'+money(currentValue,q.currency||displayCurrency)+'</strong></div><div><small>Variação pelo preço</small><strong class="'+(result>=0?"up":"down")+'">'+pct(result)+'</strong></div><p>Período: <b>'+holdingDays.toLocaleString("pt-BR")+' dias</b>. A simulação considera somente a variação do preço. Dividendos, splits e outros eventos são apenas informados quando confirmados e não são incorporados automaticamente.</p>'+eventsHtml;
+      state.backtestRan=true;
       $("backtestResult").scrollIntoView({behavior:"smooth",block:"nearest"});
     }catch(e){
-      $("backtestResult").innerHTML="<div class=\"backtest-error\">"+esc(e.message||"Não foi possível carregar o histórico para essa simulação.")+"</div>";
+      $("backtestResult").innerHTML="<div class=\"backtest-error\">"+esc(e.message||"Não foi possível calcular a simulação histórica.")+"</div>";
+      state.backtestRan=false;
     }finally{
       $("backtestButton").disabled=false;
       $("backtestButton").textContent="Calcular simulação →";
