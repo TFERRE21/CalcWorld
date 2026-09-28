@@ -37,5 +37,5 @@
         keepalive: true
       }).catch(function () {});
     }
-  } catch (e) {}
+    if (!document.querySelector('script[data-cw-mobile-experience]')) { var mobile=document.createElement("script"); mobile.src="/mobile-experience.js?v=20260928-1"; mobile.setAttribute("data-cw-mobile-experience","1"); document.body.appendChild(mobile); }\n  } catch (e) {}
 })();
