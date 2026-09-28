@@ -6,6 +6,7 @@
   const presets = {
     crypto:[["BTC/USD","Bitcoin","CRYPTO"],["ETH/USD","Ethereum","CRYPTO"],["SOL/USD","Solana","CRYPTO"],["BNB/USD","BNB","CRYPTO"]],
     stock:[["PETR4","Petrobras","BVMF"],["VALE3","Vale","BVMF"],["ITUB4","Itaú Unibanco","BVMF"],["BBAS3","Banco do Brasil","BVMF"],["AAPL","Apple","NASDAQ"],["MSFT","Microsoft","NASDAQ"],["NVDA","NVIDIA","NASDAQ"],["AMZN","Amazon","NASDAQ"]],
+    fund:[["BOVA11","ETF Ibovespa","BVMF"],["IVVB11","ETF S&P 500","BVMF"],["MXRF11","Fundo imobiliário","BVMF"]],
     fii:[["MXRF11","Maxi Renda","BVMF"],["HGLG11","CSHG Logística","BVMF"],["KNRI11","Kinea Renda Imobiliária","BVMF"],["XPLG11","XP Log","BVMF"]],
     fx:[["USD/BRL","Dólar","FOREX"],["EUR/BRL","Euro","FOREX"],["GBP/BRL","Libra","FOREX"]]
   };
