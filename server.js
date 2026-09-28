@@ -12,6 +12,7 @@ const ADMIN_PASSWORD_HASH = String(process.env.ADMIN_PASSWORD_HASH || "").trim()
 const SESSION_SECRET = String(process.env.SESSION_SECRET || "").trim();
 const TWELVE_DATA_API_KEY = String(process.env.TWELVE_DATA_API_KEY || "").trim();
 const OPENAI_API_KEY = String(process.env.OPENAI_API_KEY || "").trim();
+// CalcWorld deployment marker: keep ICP webhook releases aligned with main.
 const MARKET_CACHE_MS = 60 * 1000;
 const marketCache = new Map();
 const researchCache = new Map();
