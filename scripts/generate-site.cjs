@@ -72,7 +72,7 @@ function searchIntent(c,l){
 }
 function seoText(c,l){
  const n=esc(c.title[l]);
- if(l==="pt") return "Use a "+n+" online para calcular o resultado com os dados informados. Confira os valores antes de calcular e use o resultado como referência para sua decisão."+(searchIntent(c,l)?" "+searchIntent(c,l):"");
+ if(l==="pt") return "Use a "+n+" online para calcular o resultado com os dados informados. Confira os valores antes de calcular e use o resultado como referência para sua decisão."+(searchIntent(c,l)?" "+searchIntent(c,l):"")+(c.cat==="investment"?" No CalcWorld Invest você também pode consultar cotação e histórico de ativos disponíveis no provedor, visualizar períodos como 24H, 1 mês, 6 meses, 1 ano e 5 anos e simular quanto um valor investido em uma data passada representaria hoje.":"");
  if(l==="en") return "Use the "+n+" online to calculate a result from the values you enter. Review the inputs and use the result as a reference.";
  return "Usa la "+n+" online para calcular el resultado con los datos introducidos. Revisa los valores y utiliza el resultado como referencia.";
 }
