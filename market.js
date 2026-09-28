@@ -32,7 +32,7 @@
       ["CAD/BRL","Dólar canadense","FOREX"],["AUD/BRL","Dólar australiano","FOREX"],["CHF/BRL","Franco suíço","FOREX"]
     ]
   };
-  let state={quote:null,history:[],currency:"BRL",period:"1y",searchResults:[],catalog:[],catalogPage:1,catalogHasNext:false};
+  let state={quote:null,history:[],currency:"BRL",period:"1y",searchResults:[],catalog:[],catalogPage:1,catalogHasNext:false,backtestRan:false};
 
   function allAssets(){ return Object.values(presets).flat(); }
   function currentType(){ return $("assetType").value; }
@@ -170,10 +170,49 @@
   }
   function renderBacktest(values){
     const amount=Number($("backtestAmount").value||0), date=$("backtestDate").value;
-    if(!amount||!date||!state.quote||!values.length){$("backtestResult").innerHTML="Informe valor e data para simular.";return;}
-    const start=values.find(x=>x.datetime.slice(0,10)>=date)||values[0], current=values[values.length-1];
+    if(!amount||!date||!state.quote||!values.length){
+      $("backtestResult").innerHTML="Informe valor e data e clique em <b>Calcular simulação →</b>.";
+      return false;
+    }
+    const start=values.find(x=>String(x.datetime||"").slice(0,10)>=date);
+    if(!start){
+      $("backtestResult").innerHTML="Não há histórico disponível para a data informada. Tente uma data mais recente ou use um ativo com histórico mais longo.";
+      return false;
+    }
+    const current=values[values.length-1];
     const units=amount/start.close, currentValue=units*current.close, result=(currentValue/amount-1)*100;
-    $("backtestResult").innerHTML='<div><small>Se você tivesse investido</small><strong>'+money(amount,state.quote.currency)+'</strong></div><div><small>Na data</small><strong>'+esc(start.datetime.slice(0,10))+'</strong></div><div><small>Preço de entrada</small><strong>'+money(start.close,state.quote.currency)+'</strong></div><div><small>Valor estimado hoje</small><strong>'+money(currentValue,state.quote.currency)+'</strong></div><div><small>Variação pelo preço</small><strong class="'+(result>=0?"up":"down")+'">'+pct(result)+'</strong></div><p>Simulação por variação de preço. Não inclui corretagem, impostos, dividendos, splits ou outros eventos quando não incorporados pelo provedor.</p>';
+    $("backtestResult").innerHTML='<div><small>Se você tivesse investido</small><strong>'+money(amount,state.quote.currency)+'</strong></div><div><small>Na data</small><strong>'+esc(String(start.datetime).slice(0,10))+'</strong></div><div><small>Preço de entrada</small><strong>'+money(start.close,state.quote.currency)+'</strong></div><div><small>Valor estimado hoje</small><strong>'+money(currentValue,state.quote.currency)+'</strong></div><div><small>Variação pelo preço</small><strong class="'+(result>=0?"up":"down")+'">'+pct(result)+'</strong></div><p>Simulação por variação de preço. Não inclui corretagem, impostos, dividendos, splits ou outros eventos quando não incorporados pelo provedor.</p>';
+    return true;
+  }
+  async function runBacktest(){
+    const amount=Number($("backtestAmount").value||0), date=$("backtestDate").value;
+    if(!amount||amount<=0){$("backtestResult").innerHTML="Informe um valor inicial maior que zero.";return;}
+    if(!date){$("backtestResult").innerHTML="Informe a data do investimento.";return;}
+    if(!state.quote){$("backtestResult").innerHTML="Primeiro consulte um ativo.";return;}
+    $("backtestButton").disabled=true;
+    $("backtestButton").textContent="Calculando…";
+    $("backtestResult").innerHTML="Buscando o histórico necessário para a data informada…";
+    try{
+      let values=state.history||[];
+      const firstDate=values.length?String(values[0].datetime||"").slice(0,10):"";
+      if(!firstDate || date<firstDate){
+        const displayCurrency=$("currencyDisplay").value;
+        const q=await getJSON("/api/market/overview?symbol="+encodeURIComponent(state.quote.symbol)+"&exchange="+encodeURIComponent(state.quote.exchange||"")+"&period=max&currency="+encodeURIComponent(displayCurrency));
+        if(!q || !Array.isArray(q.values) || !q.values.length) throw new Error("O provedor não retornou histórico suficiente para essa data.");
+        values=q.values;
+        state.history=values;
+        drawChart(values);
+      }
+      const ok=renderBacktest(values);
+      state.backtestRan=ok;
+      if(!ok) return;
+      $("backtestResult").scrollIntoView({behavior:"smooth",block:"nearest"});
+    }catch(e){
+      $("backtestResult").innerHTML=esc(e.message||"Não foi possível carregar o histórico para essa simulação.");
+    }finally{
+      $("backtestButton").disabled=false;
+      $("backtestButton").textContent="Calcular simulação →";
+    }
   }
   async function loadAll(){
     let symbol=$("symbol").value.trim(), exchange=$("exchange").value.trim(), period=state.period;
@@ -197,8 +236,9 @@
       }
       renderQuote(q);
       state.history=q.values||[];
+      state.backtestRan=false;
       drawChart(state.history);
-      renderBacktest(state.history);
+      $("backtestResult").innerHTML="Informe valor e data e clique em <b>Calcular simulação →</b>.";
       const note=q.sourceNote ? " "+q.sourceNote : "";
       setStatus("Dados pesquisados pela OpenAI na web. Atualização: "+(q.datetime||"data não informada")+"."+note,"ok");
     }catch(e){setStatus(e.message || "Não foi possível consultar os dados de mercado pela OpenAI.","error");$("marketChart").innerHTML='<div class="chart-empty">Não foi possível carregar os dados.</div>';}
