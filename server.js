@@ -430,8 +430,7 @@ app.post("/api/research", async (req, res) => {
       ?.filter(item => item.type === "message")
       ?.flatMap(item => item.content || [])
       ?.filter(part => part.type === "output_text") || [];
-    const textOutput = textParts.map(part => part.text).join("
-").trim() || data.output_text || "";
+    const textOutput = textParts.map(part => part.text).join("\n").trim() || data.output_text || "";
     const sources = textParts.flatMap(part => part.annotations || [])
       .filter(a => a.type === "url_citation" && a.url)
       .map(a => ({ title: a.title || a.url, url: a.url }))
