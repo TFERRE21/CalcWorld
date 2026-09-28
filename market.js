@@ -124,18 +124,33 @@
   }
   function renderCatalog(){
     const box=$("marketCatalog"); if(!box)return;
-    box.innerHTML="";
-    (state.catalog||[]).forEach(x=>{
-      const b=document.createElement("button"); b.type="button"; b.className="catalog-item"; b.dataset.symbol=x.symbol||""; b.dataset.exchange=x.exchange||"";
-      const strong=document.createElement("strong"); strong.textContent=x.symbol||"";
-      const span=document.createElement("span"); span.textContent=x.name||x.symbol||"";
-      const small=document.createElement("small"); small.textContent=x.exchange||"mercado";
-      b.append(strong,span,small); b.onclick=()=>{ $("symbol").value=b.dataset.symbol; $("exchange").value=b.dataset.exchange==="CRYPTO"?"":b.dataset.exchange; loadAll(); };
-      box.appendChild(b);
+    const filter=String($("catalogFilter")?.value||"").trim().toLowerCase();
+    const sort=$("catalogSort")?.value||"symbol";
+    let rows=(state.catalog||[]).filter(x=>!filter||String(x.symbol||"").toLowerCase().includes(filter)||String(x.name||"").toLowerCase().includes(filter));
+    rows.sort((a,b)=>{
+      if(sort==="price") return (Number(b.price)||-Infinity)-(Number(a.price)||-Infinity);
+      if(sort==="change") return (Number(b.change)||-Infinity)-(Number(a.change)||-Infinity);
+      return String(a[sort]||a.symbol||"").localeCompare(String(b[sort]||b.symbol||""));
     });
-    if(state.catalogHasNext){const more=document.createElement("button");more.type="button";more.className="catalog-more";more.textContent="Carregar mais ativos →";more.onclick=()=>{state.catalogPage+=1;loadCatalog(false)};box.appendChild(more)}
-    if(!state.catalog.length){const e=document.createElement("div");e.className="asset-list-empty";e.textContent="Nenhum ativo encontrado.";box.appendChild(e)}
+    const head='<div class="catalog-table"><div class="catalog-row catalog-head"><span>Ativo</span><span>Nome</span><span>Preço</span><span>Variação</span><span>Mercado</span></div>';
+    const body=rows.map(x=>{
+      const price=Number.isFinite(Number(x.price))?money(Number(x.price),x.currency||"BRL"):"—";
+      const change=Number.isFinite(Number(x.change))?pct(Number(x.change)):"—";
+      const cls=Number(x.change)>=0?"up":"down";
+      return '<button type="button" class="catalog-row catalog-item" data-symbol="'+esc(x.symbol||"")+'" data-exchange="'+esc(x.exchange||"")+'"><span><strong>'+esc(x.symbol||"")+'</strong></span><span>'+esc(x.name||x.symbol||"")+'</span><span>'+price+'</span><span class="'+cls+'">'+change+'</span><span>'+esc(x.exchange||"mercado")+'</span></button>';
+    }).join("");
+    const more=state.catalogHasNext?'<button type="button" id="catalogMore" class="catalog-more">Carregar mais ativos →</button>':"";
+    box.innerHTML=(rows.length?head+body+'</div>':'<div class="asset-list-empty">Nenhum ativo encontrado.</div>')+more;
+    box.querySelectorAll(".catalog-item").forEach(b=>b.onclick=()=>{
+      $("symbol").value=b.dataset.symbol;
+      $("exchange").value=b.dataset.exchange==="CRYPTO"?"":b.dataset.exchange;
+      loadAll();
+      document.querySelector(".market-dashboard")?.scrollIntoView({behavior:"smooth",block:"start"});
+    });
+    const moreBtn=$("catalogMore");
+    if(moreBtn)moreBtn.onclick=()=>{state.catalogPage+=1;loadCatalog(false)};
   }
+
   function drawChart(values){
     const el=$("marketChart");
     if(!values.length){el.innerHTML='<div class="chart-empty">Histórico indisponível para este ativo.</div>';return;}
@@ -199,7 +214,7 @@
   $("backtestAmount").oninput=()=>renderBacktest(state.history);
   $("backtestDate").onchange=()=>renderBacktest(state.history);
   $("backtestButton").onclick=()=>renderBacktest(state.history);
-  $("catalogLoad").onclick=()=>loadCatalog(true);
+  $("catalogLoad").onclick=()=>loadCatalog(true);\n  $("catalogFilter").oninput=()=>renderCatalog();\n  $("catalogSort").onchange=()=>renderCatalog();
   periodButtons();
   presetList("crypto");
   loadAll();
