@@ -181,7 +181,7 @@
     }
     const current=values[values.length-1];
     const units=amount/start.close, currentValue=units*current.close, result=(currentValue/amount-1)*100;
-    $("backtestResult").innerHTML='<div><small>Se você tivesse investido</small><strong>'+money(amount,state.quote.currency)+'</strong></div><div><small>Na data</small><strong>'+esc(String(start.datetime).slice(0,10))+'</strong></div><div><small>Preço de entrada</small><strong>'+money(start.close,state.quote.currency)+'</strong></div><div><small>Valor estimado hoje</small><strong>'+money(currentValue,state.quote.currency)+'</strong></div><div><small>Variação pelo preço</small><strong class="'+(result>=0?"up":"down")+'">'+pct(result)+'</strong></div><p>Simulação por variação de preço. Não inclui corretagem, impostos, dividendos, splits ou outros eventos quando não incorporados pelo provedor.</p>';
+    $("backtestResult").innerHTML='<div><small>Se você tivesse investido</small><strong>'+money(amount,state.quote.currency)+'</strong></div><div><small>Na data</small><strong>'+esc(String(start.datetime).slice(0,10))+'</strong></div><div><small>Preço de entrada</small><strong>'+money(start.close,state.quote.currency)+'</strong></div><div><small>Valor estimado hoje</small><strong>'+money(currentValue,state.quote.currency)+'</strong></div><div><small>Variação pelo preço</small><strong class="'+(result>=0?"up":"down")+'">'+pct(result)+'</strong></div><p>Simulação por variação de preço. Período aproximado: <b>'+holdingDays.toLocaleString("pt-BR")+' dias</b>. Não inclui corretagem, impostos, dividendos, splits ou outros eventos quando não incorporados pelo provedor.</p>';
     return true;
   }
   async function runBacktest(){
@@ -208,7 +208,7 @@
       if(!ok) return;
       $("backtestResult").scrollIntoView({behavior:"smooth",block:"nearest"});
     }catch(e){
-      $("backtestResult").innerHTML=esc(e.message||"Não foi possível carregar o histórico para essa simulação.");
+      $("backtestResult").innerHTML="<div class=\"backtest-error\">"+esc(e.message||"Não foi possível carregar o histórico para essa simulação.")+"</div>";
     }finally{
       $("backtestButton").disabled=false;
       $("backtestButton").textContent="Calcular simulação →";
