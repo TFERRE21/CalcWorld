@@ -66,29 +66,18 @@
     setStatus("Consultando dados de mercado…");
     $("marketName").textContent="Carregando…";$("marketPrice").textContent="—";$("marketChart").innerHTML='<div class="chart-empty">Carregando histórico…</div>';
     try{
-      const results = await Promise.allSettled([
-        getJSON("/api/market/quote?symbol="+encodeURIComponent(symbol)+"&exchange="+encodeURIComponent(exchange)),
-        getJSON("/api/market/history?symbol="+encodeURIComponent(symbol)+"&exchange="+encodeURIComponent(exchange)+"&period="+encodeURIComponent(period))
-      ]);
-      const qResult = results[0], hResult = results[1];
-      if (hResult.status !== "fulfilled") throw hResult.reason;
-      const h = hResult.value;
-      let q = qResult.status === "fulfilled" ? qResult.value : null;
-      if (!q) {
-        setStatus("Histórico carregado, mas a cotação atual não respondeu. O gráfico continua disponível.", "ok");
+      const displayCurrency=$("currencyDisplay").value;
+      const q=await getJSON("/api/market/overview?symbol="+encodeURIComponent(symbol)+"&exchange="+encodeURIComponent(exchange)+"&period="+encodeURIComponent(period)+"&currency="+encodeURIComponent(displayCurrency));
+      if(!q || !q.values?.length){
+        throw new Error("A pesquisa não encontrou histórico verificável para este ativo.");
       }
-      let displayCurrency=$("currencyDisplay").value;
-      if(q && q.currency!==displayCurrency){
-        const fx=await getJSON("/api/market/currency?from="+encodeURIComponent(q.currency)+"&to="+encodeURIComponent(displayCurrency));
-        q.price*=fx.rate;q.previousClose*=fx.rate;q.change*=fx.rate;q.currency=displayCurrency;
-        h.values=(h.values||[]).map(x=>({...x,close:x.close*fx.rate,open:x.open*fx.rate,high:x.high*fx.rate,low:x.low*fx.rate}));
-      }
-      if(q) renderQuote(q);
-      state.history=h.values||[];
+      renderQuote(q);
+      state.history=q.values||[];
       drawChart(state.history);
       renderBacktest(state.history);
-      if(q) setStatus("Dados atualizados. Fonte: provedor de dados de mercado.","ok");
-    }catch(e){setStatus(e.message+" Configure a API de mercado no servidor se necessário.","error");$("marketChart").innerHTML='<div class="chart-empty">Não foi possível carregar os dados.</div>';}
+      const note=q.sourceNote ? " "+q.sourceNote : "";
+      setStatus("Dados pesquisados pela OpenAI na web. Atualização: "+(q.datetime||"data não informada")+"."+note,"ok");
+    }catch(e){setStatus(e.message || "Não foi possível consultar os dados de mercado pela OpenAI.","error");$("marketChart").innerHTML='<div class="chart-empty">Não foi possível carregar os dados.</div>';}
   }
   function periodButtons(){
     document.querySelectorAll("[data-period]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-period]").forEach(x=>x.classList.remove("active"));b.classList.add("active");state.period=b.dataset.period;loadAll();});
