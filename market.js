@@ -32,17 +32,25 @@
       ["CAD/BRL","Dólar canadense","FOREX"],["AUD/BRL","Dólar australiano","FOREX"],["CHF/BRL","Franco suíço","FOREX"]
     ]
   };
-  let state={quote:null,history:[],currency:"BRL",period:"1y"};
+  let state={quote:null,history:[],currency:"BRL",period:"1y",searchResults:[]};
 
   function allAssets(){ return Object.values(presets).flat(); }
   function currentType(){ return $("assetType").value; }
   function findAsset(query){
     const q=String(query||"").trim().toLowerCase();
     if(!q) return null;
-    const list=presets[currentType()]||[];
-    return list.find(x=>x[0].toLowerCase()===q || x[1].toLowerCase()===q)
-      || list.find(x=>x[0].toLowerCase().startsWith(q) || x[1].toLowerCase().startsWith(q))
-      || null;
+    const list=[...(presets[currentType()]||[]),...state.searchResults];
+    const hit=list.find(x=>String(x[0]).toLowerCase()===q || String(x[1]).toLowerCase()===q)
+      || list.find(x=>String(x[0]).toLowerCase().startsWith(q) || String(x[1]).toLowerCase().startsWith(q));
+    if(hit) return hit;
+    // Any valid ticker/symbol can be consulted even when it is not in the quick list.
+    const raw=String(query||"").trim();
+    if(/^[A-Za-z0-9./:_-]{1,40}$/.test(raw)){
+      const type=currentType();
+      const exchange=type==="crypto"||type==="fx"?"":(type==="stock"||type==="fii"||type==="fund"?"BVMF":"");
+      return [raw,raw.toUpperCase(),exchange];
+    }
+    return null;
   }
   function presetList(type, filter=""){
     const list=presets[type]||presets.stock;
@@ -75,15 +83,21 @@
     if(!r.ok) throw new Error(d.error||"Erro ao consultar mercado");
     return d;
   }
-  function setStatus(text,kind=""){ $("marketStatus").textContent=text; $("marketStatus").className="market-status "+kind; }function searchSymbols(){
+  function setStatus(text,kind=""){ $("marketStatus").textContent=text; $("marketStatus").className="market-status "+kind; }async function searchSymbols(){
     const q=$("symbol").value.trim();
     const box=$("symbolSuggestions");
     const list=presets[currentType()]||[];
     if(!q){ if(box) box.innerHTML=""; presetList(currentType()); return; }
     const rows=list.filter(x=>x[0].toLowerCase().includes(q.toLowerCase())||x[1].toLowerCase().includes(q.toLowerCase())).slice(0,10);
+    try{
+      const response=await getJSON("/api/market/search?q="+encodeURIComponent(q)+"&type="+encodeURIComponent(currentType()));
+      const remote=Array.isArray(response.data)?response.data:[];
+      state.searchResults=remote.map(x=>[x.symbol||"",x.name||x.symbol||"",x.exchange||"",x.type||currentType(),x.currency||""]);
+      remote.forEach(x=>{const row=[x.symbol||"",x.name||x.symbol||"",x.exchange||"",x.type||currentType(),x.currency||""];if(row[0]&&!rows.some(y=>y[0]===row[0]))rows.push(row);});
+    }catch(e){}
     if(!box)return;
     box.innerHTML=rows.map(x=>'<button type="button" class="symbol-option" data-symbol="'+esc(x[0])+'" data-exchange="'+esc(x[2])+'"><strong>'+esc(x[0])+'</strong><span>'+esc(x[1])+' • '+esc(x[2])+'</span></button>').join("")
-      || '<div class="symbol-empty">Nenhum ativo encontrado na lista.</div>';
+      || '<div class="symbol-empty">Nenhum ativo encontrado. Tente o ticker, nome completo ou outro símbolo.</div>';
     box.querySelectorAll(".symbol-option").forEach(b=>b.onclick=()=>{
       $("symbol").value=b.dataset.symbol;
       $("exchange").value=b.dataset.exchange==="CRYPTO"?"":b.dataset.exchange;
@@ -91,7 +105,8 @@
       presetList(currentType(),b.dataset.symbol);
       loadAll();
     });
-    presetList(currentType(),q);
+    if(rows.length) $("assetPresets").innerHTML=rows.map(x=>'<button type="button" data-symbol="'+esc(x[0])+" data-name=\""+esc(x[1])+" data-exchange=\""+esc(x[2])+"\"><strong>"+esc(x[0])+"</strong><span>"+esc(x[1])+" • "+esc(x[2]||"mercado")+"</span></button>').join("");
+    $("assetPresets").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("symbol").value=b.dataset.symbol; $("exchange").value=b.dataset.exchange==="CRYPTO"?"":b.dataset.exchange; $("symbolSuggestions").innerHTML=""; loadAll(); });
   }
 
   function drawChart(values){
@@ -123,8 +138,7 @@
     const asset=findAsset(symbol);
     if(!symbol){setStatus("Escolha um ativo da lista ou digite para filtrar a lista.","error");return;}
     if(!asset){
-      setStatus("Esse ativo não está na lista disponível para a categoria selecionada.","error");
-      presetList(currentType(),symbol);
+      setStatus("Não foi possível identificar esse ativo. Pesquise pelo ticker ou nome completo.","error");
       return;
     }
     symbol=asset[0];
@@ -156,6 +170,8 @@
   $("symbol").addEventListener("input",()=>{searchSymbols();});
   $("backtestDate").value=new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().slice(0,10);
   $("backtestAmount").oninput=()=>renderBacktest(state.history);
+  $("backtestDate").onchange=()=>renderBacktest(state.history);
+  $("backtestButton").onclick=()=>renderBacktest(state.history);
   periodButtons();
   presetList("crypto");
   loadAll();
