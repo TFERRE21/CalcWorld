@@ -464,7 +464,7 @@ app.use((req, res) => {
 setInterval(() => {
   const now = Date.now();
   for (const [token, session] of sessions) if (session.expiresAt < now) sessions.delete(token);
-  for (const [ip, attempt] of loginAttempts) if (attempt.resetAt < now) loginAttempts.delete(ip);
+  for (const [ip, attempt] of loginAttempts) if (attempt.resetAt < now) loginAttempts.delete(ip);\n  for (const [ip, attempt] of researchLimits) if (attempt.resetAt < now) researchLimits.delete(ip);\n  for (const [key, item] of researchCache) if (item.expiresAt < now) researchCache.delete(key);
 }, 15 * 60 * 1000).unref();
 
 app.listen(PORT, "0.0.0.0", () => {
