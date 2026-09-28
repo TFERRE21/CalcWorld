@@ -255,9 +255,8 @@
   $("marketSearch").onsubmit=e=>{e.preventDefault();loadAll()};
   $("symbol").addEventListener("input",()=>{searchSymbols();});
   $("backtestDate").value=new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().slice(0,10);
-  $("backtestAmount").oninput=()=>renderBacktest(state.history);
-  $("backtestDate").onchange=()=>renderBacktest(state.history);
-  $("backtestButton").onclick=()=>renderBacktest(state.history);
+  // A simulação histórica precisa consultar o endpoint dedicado, inclusive para datas antigas.
+  $("backtestButton").onclick=runBacktest;
   $("catalogLoad").onclick=()=>loadCatalog(true);
   $("catalogFilter").oninput=()=>renderCatalog();
   $("catalogSort").onchange=()=>renderCatalog();
