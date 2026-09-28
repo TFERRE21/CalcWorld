@@ -280,3 +280,12 @@ html[data-theme="dark"] .cw-mobile-nav{background:rgba(11,18,32,.96);border-colo
 
 /* Dark theme hardening */
 html{color-scheme:light}html[data-theme="dark"]{color-scheme:dark}html[data-theme="dark"] input,html[data-theme="dark"] select,html[data-theme="dark"] textarea{background:var(--surface)!important;color:var(--text)!important;border-color:var(--line)!important}html[data-theme="dark"] .result,html[data-theme="dark"] .calc-report,html[data-theme="dark"] .calc-side-card,html[data-theme="dark"] .seo-guide,html[data-theme="dark"] .calc-info{background:var(--surface);color:var(--text);border-color:var(--line)}html[data-theme="dark"] .ad-slot{background:#0f192b;color:#8190a8;border-color:var(--line)}html[data-theme="dark"] a{color:inherit}html[data-theme="dark"] .text-link{color:#8ab4ff}html[data-theme="dark"] table th,html[data-theme="dark"] table td{border-color:var(--line)}
+
+/* Investment simulation chart */
+.investment-chart{display:grid;gap:12px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.chart-row{display:grid;grid-template-columns:minmax(110px,150px) 1fr minmax(90px,140px);align-items:center;gap:10px;font-size:14px}
+.chart-row>span{font-weight:700;color:var(--text)}
+.chart-row>b{text-align:right;color:var(--text);font-size:13px}
+.chart-track{height:12px;border-radius:999px;background:var(--soft);overflow:hidden}
+.chart-track i{display:block;height:100%;border-radius:999px;background:currentColor;opacity:.75}
+@media(max-width:640px){.chart-row{grid-template-columns:1fr;gap:5px}.chart-row>b{text-align:left}.chart-track{height:10px}}
