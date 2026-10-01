@@ -200,3 +200,30 @@ if(guideIds.length){
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",mountAds);
   else mountAds();
 })();
+
+
+/* CalcWorld — AdSense display unit 02 */
+(function(){
+  const AD_CLIENT="ca-pub-6472882150880001";
+  const AD_SLOT="9030618647";
+  function mountAds02(){
+    const slots=document.querySelectorAll(".ad-slot-02");
+    slots.forEach(function(slot){
+      if(slot.dataset.adsenseMounted==="1") return;
+      slot.dataset.adsenseMounted="1";
+      slot.innerHTML="";
+      const ins=document.createElement("ins");
+      ins.className="adsbygoogle";
+      ins.style.display="block";
+      ins.setAttribute("data-ad-client",AD_CLIENT);
+      ins.setAttribute("data-ad-slot",AD_SLOT);
+      ins.setAttribute("data-ad-format","auto");
+      ins.setAttribute("data-full-width-responsive","true");
+      slot.appendChild(ins);
+      window.adsbygoogle=window.adsbygoogle||[];
+      window.adsbygoogle.push({});
+    });
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",mountAds02);
+  else mountAds02();
+})();
