@@ -174,3 +174,29 @@ if(guideIds.length){
  guideIds.forEach(id=>{const a=document.createElement("a");a.className="card";a.href="/guias/"+id+"/";a.innerHTML="<div class='card-icon'>▣</div><h3>"+(GUIDE_MAP[id]||"Guia")+"</h3><p>"+(l==="en"?"Practical explanation and calculation assumptions.":"Explicação prática, fórmula e premissas do cálculo.")+"</p><span class='text-link'>"+(l==="en"?"Read guide →":"Ler guia →")+"</span>";gg.appendChild(a)});
  document.querySelector("main")?.appendChild(gs);
 }
+
+
+/* CalcWorld — AdSense display unit */
+(function(){
+  const AD_CLIENT="ca-pub-6472882150880001";
+  const AD_SLOT="4923852670";
+  function mountAds(){
+    document.querySelectorAll(".ad-slot").forEach(function(slot){
+      if(slot.dataset.adsenseMounted==="1") return;
+      slot.dataset.adsenseMounted="1";
+      slot.innerHTML="";
+      const ins=document.createElement("ins");
+      ins.className="adsbygoogle";
+      ins.style.display="block";
+      ins.setAttribute("data-ad-client",AD_CLIENT);
+      ins.setAttribute("data-ad-slot",AD_SLOT);
+      ins.setAttribute("data-ad-format","auto");
+      ins.setAttribute("data-full-width-responsive","true");
+      slot.appendChild(ins);
+      window.adsbygoogle=window.adsbygoogle||[];
+      window.adsbygoogle.push({});
+    });
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",mountAds);
+  else mountAds();
+})();
