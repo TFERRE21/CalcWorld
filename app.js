@@ -56,3 +56,29 @@ case"age":{const d=document.getElementById("in_a").value;if(d){const x=new Date(
 case"dateDiff":case"businessDays":{let a=new Date(document.getElementById("in_a").value+"T12:00:00"),b=new Date(document.getElementById("in_b").value+"T12:00:00");if(isNaN(a)||isNaN(b))break;if(a>b)[a,b]=[b,a];let count=0;for(let d=new Date(a);d<=b;d.setDate(d.getDate()+1))if(type==="dateDiff"||![0,6].includes(d.getDay()))count++;r=(type==="dateDiff"?Math.max(0,count-1):count)+" dias";break}case"addDays":{const d=new Date(document.getElementById("in_a").value+"T12:00:00");d.setDate(d.getDate()+N("b"));r=d.toLocaleDateString(lang);break}
 case"area":r=N("a")*N("b")+" m²";break;case"volume":r=N("a")*N("b")*N("c")+" m³";break;case"temperature":r=(document.getElementById("in_b").value==="f"?N("a")*9/5+32:N("a")+273.15).toLocaleString(lang,{maximumFractionDigits:2});break;case"currency":r=inMoney(N("a")*N("b"));break;case"inflation":{let f=1;A("a").forEach(x=>f*=1+x/100);r=((f-1)*100).toLocaleString(lang,{maximumFractionDigits:2})+"%";break}case"unitCost":r=inMoney(N("a")/N("b"));break;case"reorder":r=Math.ceil(N("a")*N("b")+N("c"))+" unidades";break;
 case"units":{const v=N("a"),u=document.getElementById("in_b").value;r=(u==="kg-lb"?v*2.2046226218:u==="km-mi"?v*.6213711922:u==="c-f"?v*9/5+32:v*.2641720524).toLocaleString(lang,{maximumFractionDigits:4});break}case"weight":{const v=N("a"),u=document.getElementById("in_b").value;r=(u==="kg-lb"?v*2.2046226218:u==="lb-kg"?v/2.2046226218:u==="kg-g"?v*1000:v/1000).toLocaleString(lang,{maximumFractionDigits:4});break}case"length":{const v=N("a"),u=document.getElementById("in_b").value;r=(u==="m-km"?v/1000:u==="km-m"?v*1000:u==="km-mi"?v*.621371:v/.621371).toLocaleString(lang,{maximumFractionDigits:4});break}case"areaConvert":{const v=N("a"),u=document.getElementById("in_b").value;r=(u==="m2-ha"?v/10000:u==="ha-m2"?v*10000:v*2.47105381).toLocaleString(lang,{maximumFractionDigits:4});break}case"volumeConvert":{const v=N("a"),u=document.getElementById("in_b").value;r=(u==="l-ml"?v*1000:u==="ml-l"?v/1000:v*1000).toLocaleString(lang,{maximumFractionDigits:4});break}default:r="—"}if(typeof r==="number")r=r.toLocaleString(lang,{maximumFractionDigits:4});const box=document.getElementById("instantResult");box.innerHTML='<span class="result-kicker">'+t.result+'</span><strong>'+r+'</strong><p>'+detail+'</p>'}catch(e){document.getElementById("instantResult").innerHTML='<span class="result-kicker">'+t.result+'</span><strong>—</strong><p>'+t.hint+'</p>'}}
+
+
+/* CalcWorld — AdSense display unit */
+(function(){
+  const AD_CLIENT="ca-pub-6472882150880001";
+  const AD_SLOT="4923852670";
+  function mountAds(){
+    document.querySelectorAll(".ad-slot").forEach(function(slot){
+      if(slot.dataset.adsenseMounted==="1") return;
+      slot.dataset.adsenseMounted="1";
+      slot.innerHTML="";
+      const ins=document.createElement("ins");
+      ins.className="adsbygoogle";
+      ins.style.display="block";
+      ins.setAttribute("data-ad-client",AD_CLIENT);
+      ins.setAttribute("data-ad-slot",AD_SLOT);
+      ins.setAttribute("data-ad-format","auto");
+      ins.setAttribute("data-full-width-responsive","true");
+      slot.appendChild(ins);
+      window.adsbygoogle=window.adsbygoogle||[];
+      window.adsbygoogle.push({});
+    });
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",mountAds);
+  else mountAds();
+})();
