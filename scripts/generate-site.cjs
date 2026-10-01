@@ -122,11 +122,27 @@ function seoTitle(c,l){
   if(l!=="pt") return c.title[l];
   const titles={
     "rescisao":"Calculadora de rescisão trabalhista 2026 — calcular rescisão online",
-    "salario-liquido":"Calculadora de salário líquido — calcular salário líquido online",
-    "financiamento":"Calculadora de financiamento — simular financiamento online",
+    "salario-liquido":"Calculadora de salário líquido 2026 — calcular salário líquido online",
+    "financiamento":"Calculadora de financiamento 2026 — simular financiamento online",
     "juros-compostos":"Calculadora de juros compostos — simular juros compostos",
-    "ferias":"Calculadora de férias — calcular férias online",
-    "combustivel":"Calculadora de combustível — calcular custo da viagem"
+    "ferias":"Calculadora de férias 2026 — calcular férias online",
+    "combustivel":"Calculadora de combustível — calcular custo da viagem",
+    "decimo-terceiro":"Calculadora de 13º salário 2026 — calcular décimo terceiro",
+    "decimo-terceiro-proporcional":"13º proporcional 2026 — calcular décimo terceiro proporcional",
+    "ferias-proporcionais":"Calculadora de férias proporcionais 2026 — calcular férias proporcionais",
+    "horas-extras":"Calculadora de horas extras 2026 — calcular hora extra",
+    "fgts":"Calculadora de FGTS 2026 — calcular depósito e saldo estimado",
+    "salario-por-dia":"Calculadora de salário por dia — calcular valor diário",
+    "salario-por-hora":"Calculadora de salário por hora — calcular valor da hora",
+    "porcentagem-de-aumento":"Calculadora de reajuste salarial — calcular aumento de salário",
+    "adicional-hora-extra":"Calculadora de adicional de hora extra — calcular hora extra",
+    "escala-12x36":"Calculadora de escala 12x36 — organizar jornada de trabalho",
+    "salario":"Calculadora de salário 2026 — bruto, líquido, INSS e IRRF",
+    "regra-de-tres":"Calculadora de regra de três — calcular regra de três online",
+    "porcentagem":"Calculadora de porcentagem — calcular porcentagem online",
+    "aumento-percentual":"Calculadora de aumento percentual — calcular aumento",
+    "desconto":"Calculadora de desconto — calcular desconto e preço final",
+    "regra-de-porcentagem":"Calculadora de regra de porcentagem — calcular porcentagem"
   };
   return titles[c.slug]||c.title[l];
 }
@@ -163,6 +179,39 @@ for(const cat of Object.keys(categoryNames)) for(const l of ["pt","en"]){
 const urls=[site+"/",site+"/privacy.html",site+"/terms.html",site+"/legislacao.html",site+"/robots.txt",site+"/ads.txt",site+"/investimentos.html"];
 for(const c of calculators) for(const l of ["pt","en"]) urls.push(site+calcUrl(l,c.slug));
 for(const cat of Object.keys(categoryNames)) for(const l of ["pt","en"]) urls.push(site+catUrl(l,cat));
+// Important SEO hubs and editorial pages are public pages too; keep them in the sitemap
+// so regeneration does not remove manually maintained content from search discovery.
+[
+  "trabalhistas/",
+  "rescisao/",
+  "rescisao/sem-justa-causa/",
+  "rescisao/pedido-de-demissao/",
+  "rescisao/acordo/",
+  "rescisao/justa-causa/",
+  "rescisao/aviso-previo/",
+  "rescisao/fgts/",
+  "rescisao/ferias/",
+  "rescisao/decimo-terceiro/",
+  "rescisao/calculo/",
+  "rescisao/prazo-pagamento/",
+  "rescisao/saldo-de-salario/",
+  "rescisao/contrato/",
+  "rescisao/clt/",
+  "rescisao/contrato-temporario/",
+  "guias/",
+  "guias/como-calcular-rescisao/",
+  "guias/quanto-vou-receber-se-pedir-demissao/",
+  "guias/salario-liquido-como-calcular/",
+  "guias/como-calcular-ferias/",
+  "guias/como-calcular-13-salario/",
+  "guias/como-calcular-hora-extra/",
+  "guias/juros-compostos-como-calcular/",
+  "guias/financiamento-price-sac/",
+  "guias/porcentagem-de-aumento-como-calcular/",
+  "guias/dias-uteis-como-calcular/",
+  "guias/quanto-rende-1000-cdi/",
+  "guias/quanto-rende-10000-poupanca/"
+].forEach(p=>urls.push(site+"/"+p));
 const xml='<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+urls.map(u=>'<url><loc>'+u+'</loc><lastmod>'+buildDate+'</lastmod></url>').join("")+'</urlset>';
 fs.writeFileSync(path.join(root,"sitemap.xml"),xml);
 console.log("Generated "+calculators.length+" calculators x 2 locales + "+Object.keys(categoryNames).length+" categories x 2 locales.");
