@@ -984,7 +984,7 @@ app.get("/health", (req, res) => {
 
 /* Site-wide AdSense injection for public HTML pages.
    Calculator pages already have .ad-slot/.ad-slot-02, so they are not duplicated. */
-app.get("*", (req, res, next) => {
+app.get("/{*splat}", (req, res, next) => {
   try {
     if (req.path.startsWith("/api/") || req.path.startsWith("/admin")) return next();
 
