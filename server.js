@@ -981,6 +981,94 @@ app.get("/health", (req, res) => {
   res.status(200).json({ ok: true, service: "CalcWorld" });
 });
 
+
+/* Site-wide AdSense injection for public HTML pages.
+   Calculator pages already have .ad-slot/.ad-slot-02, so they are not duplicated. */
+app.get("*", (req, res, next) => {
+  try {
+    if (req.path.startsWith("/api/") || req.path.startsWith("/admin")) return next();
+
+    let relative = decodeURIComponent(req.path || "/").replace(/^\/+/, "");
+    if (!relative) relative = "index.html";
+    if (relative.endsWith("/")) relative += "index.html";
+    let filePath = path.resolve(ROOT, relative);
+
+    if (!path.extname(relative)) {
+      const asHtml = filePath + ".html";
+      const asIndex = path.join(filePath, "index.html");
+      if (fs.existsSync(asHtml)) filePath = asHtml;
+      else if (fs.existsSync(asIndex)) filePath = asIndex;
+    }
+
+    if (!filePath.startsWith(ROOT + path.sep) && filePath !== path.join(ROOT, "index.html")) return next();
+    if (!filePath.endsWith(".html") || !fs.existsSync(filePath)) return next();
+
+    let html = fs.readFileSync(filePath, "utf8");
+
+    // Do not add extra site-wide units where the calculator already has the two managed units.
+    const hasManagedAds = html.includes('class="ad-slot"') || html.includes('class="ad-slot-02"');
+    if (!hasManagedAds && !html.includes("CalcWorld_Sitewide_Display")) {
+      const adScript = `
+<script>
+(function(){
+  var client="ca-pub-6472882150880001";
+  var slots=["4923852670","9030618647"];
+  function loadAds(){
+    if(!window.adsbygoogle) window.adsbygoogle=[];
+    document.querySelectorAll(".cw-sitewide-ad").forEach(function(el,i){
+      if(el.dataset.adsenseMounted==="1") return;
+      el.dataset.adsenseMounted="1";
+      var ins=document.createElement("ins");
+      ins.className="adsbygoogle";
+      ins.style.display="block";
+      ins.setAttribute("data-ad-client",client);
+      ins.setAttribute("data-ad-slot",slots[i]||slots[0]);
+      ins.setAttribute("data-ad-format","auto");
+      ins.setAttribute("data-full-width-responsive","true");
+      el.innerHTML="";
+      el.appendChild(ins);
+      window.adsbygoogle.push({});
+    });
+  }
+  function start(){
+    if(!document.querySelector(".cw-sitewide-ad")) return;
+    if(!document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]')){
+      var s=document.createElement("script");
+      s.async=true;
+      s.src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="+client;
+      s.crossOrigin="anonymous";
+      document.head.appendChild(s);
+      s.onload=loadAds;
+    } else loadAds();
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",start);
+  else start();
+})();
+</script>`;
+
+      const firstAd = '<div class="cw-sitewide-ad" style="margin:24px auto;min-height:100px;max-width:970px" aria-label="Publicidade">Publicidade</div>';
+      const secondAd = '<div class="cw-sitewide-ad" style="margin:32px auto;min-height:100px;max-width:970px" aria-label="Publicidade">Publicidade</div>';
+
+      if (/<main[^>]*>/i.test(html)) {
+        html = html.replace(/(<main[^>]*>)/i, "$1" + firstAd);
+      } else {
+        html = html.replace(/(<body[^>]*>)/i, "$1" + firstAd);
+      }
+      if (/<\/main>/i.test(html)) {
+        html = html.replace(/<\/main>/i, secondAd + "</main>");
+      } else {
+        html = html.replace(/<\/body>/i, secondAd + "</body>");
+      }
+      html = html.replace(/<\/head>/i, '<meta name="google-adsense-account" content="ca-pub-6472882150880001"></head>');
+      html = html.replace(/<\/body>/i, '<!-- CalcWorld_Sitewide_Display --></body>');
+    }
+
+    res.type("html").send(html);
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use(express.static(ROOT, {
   extensions: ["html"],
   index: "index.html"
