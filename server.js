@@ -1049,6 +1049,7 @@ app.get("/{*splat}", (req, res, next) => {
       const firstAd = '<div class="cw-sitewide-ad" style="margin:24px auto;min-height:100px;max-width:970px" aria-label="Publicidade">Publicidade</div>';
       const secondAd = '<div class="cw-sitewide-ad" style="margin:32px auto;min-height:100px;max-width:970px" aria-label="Publicidade">Publicidade</div>';
       const thirdAd = '<div class="cw-sitewide-ad" style="margin:32px auto;min-height:100px;max-width:970px" aria-label="Publicidade">Publicidade</div>';
+      const fourthAd = '<div class="cw-sitewide-ad" style="margin:32px auto;min-height:100px;max-width:970px" aria-label="Publicidade">Publicidade</div>';
 
       if (/<main[^>]*>/i.test(html)) {
         html = html.replace(/(<main[^>]*>)/i, "$1" + firstAd);
