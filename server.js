@@ -1046,20 +1046,14 @@ app.get("/{*splat}", (req, res, next) => {
 })();
 </script>`;
 
-      const firstAd = '<div class="cw-sitewide-ad" style="margin:24px auto;min-height:100px;max-width:970px" aria-label="Publicidade">Publicidade</div>';
-      const secondAd = '<div class="cw-sitewide-ad" style="margin:32px auto;min-height:100px;max-width:970px" aria-label="Publicidade">Publicidade</div>';
-      const thirdAd = '<div class="cw-sitewide-ad" style="margin:32px auto;min-height:100px;max-width:970px" aria-label="Publicidade">Publicidade</div>';
-      const fourthAd = '<div class="cw-sitewide-ad" style="margin:32px auto;min-height:100px;max-width:970px" aria-label="Publicidade">Publicidade</div>';
+      // Uma única unidade sitewide nas páginas sem bloco editorial próprio.
+      // Evita excesso de publicidade antes do conteúdo e mantém a página focada no usuário.
+      const sitewideAd = '<div class="cw-sitewide-ad" style="margin:32px auto;min-height:100px;max-width:970px" aria-label="Publicidade">Publicidade</div>';
 
       if (/<main[^>]*>/i.test(html)) {
-        html = html.replace(/(<main[^>]*>)/i, "$1" + firstAd);
+        html = html.replace(/<\/main>/i, sitewideAd + "</main>");
       } else {
-        html = html.replace(/(<body[^>]*>)/i, "$1" + firstAd);
-      }
-      if (/<\/main>/i.test(html)) {
-        html = html.replace(/<\/main>/i, secondAd + "</main>");
-      } else {
-        html = html.replace(/<\/body>/i, secondAd + "</body>");
+        html = html.replace(/<\/body>/i, sitewideAd + "</body>");
       }
       html = html.replace(/<\/head>/i, '<meta name="google-adsense-account" content="ca-pub-6472882150880001"></head>');
       html = html.replace(/<\/body>/i, '<!-- CalcWorld_Sitewide_Display --></body>');
