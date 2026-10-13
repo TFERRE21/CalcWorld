@@ -121,14 +121,14 @@ function seoExtra(c,l){
 function seoTitle(c,l){
   if(l!=="pt") return c.title[l];
   const titles={
-    "rescisao":"Calculadora de rescisão trabalhista 2026 — calcular rescisão online",
-    "salario-liquido":"Calculadora de salário líquido 2026 — calcular salário líquido online",
-    "financiamento":"Calculadora de financiamento 2026 — simular financiamento online",
-    "juros-compostos":"Calculadora de juros compostos — simular juros compostos",
-    "ferias":"Calculadora de férias 2026 — calcular férias online",
-    "combustivel":"Calculadora de combustível — calcular custo da viagem",
-    "decimo-terceiro":"Calculadora de 13º salário 2026 — calcular décimo terceiro",
-    "decimo-terceiro-proporcional":"13º proporcional 2026 — calcular décimo terceiro proporcional",
+    "rescisao":"Calculadora de rescisão trabalhista 2026: simule sua rescisão CLT",
+    "salario-liquido":"Calculadora de salário líquido 2026: veja os descontos",
+    "financiamento":"Calculadora de financiamento: simule parcelas e juros",
+    "juros-compostos":"Calculadora de juros compostos: simule o rendimento",
+    "ferias":"Calculadora de férias 2026: salário e adicional de 1/3",
+    "combustivel":"Calculadora de combustível: custo por km e viagem",
+    "decimo-terceiro":"Calculadora de 13º salário 2026: valor integral ou proporcional",
+    "decimo-terceiro-proporcional":"Calculadora de 13º proporcional 2026: simule o valor",
     "ferias-proporcionais":"Calculadora de férias proporcionais 2026 — calcular férias proporcionais",
     "horas-extras":"Calculadora de horas extras 2026 — calcular hora extra",
     "fgts":"Calculadora de FGTS 2026 — calcular depósito e saldo estimado",
