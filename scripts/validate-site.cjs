@@ -19,5 +19,27 @@ const calcSource=fs.readFileSync("calculator.js","utf8");
 const required=[...types].filter(t=>!calcSource.includes(t+":"));
 for(const t of required) errors.push("Catalog type not implemented in calculator.js: "+t);
 if(c.length<100) errors.push("Expected at least 100 calculators, found "+c.length);
+
+// Content-quality and localization regression checks after generation.
+const homepage=fs.readFileSync("index.html","utf8");
+const app=fs.readFileSync("app.js","utf8");
+if(!homepage.includes('lang="pt-BR"')) errors.push("Homepage must declare pt-BR as its default language");
+if(!homepage.includes('name":"As calculadoras são gratuitas?')) errors.push("Homepage FAQ structured data must be in Portuguese");
+if(!app.includes('return "pt-BR";')) errors.push("New visitors must default to Portuguese on the Brazil-first site");
+if(homepage.includes('name":"Are the calculators free?')) errors.push("Homepage FAQ structured data still contains English");
+for(const [file,checks] of [
+ ["calculadoras/porcentagem/index.html",["Exemplo resolvido","Memória de cálculo","Calculadora de porcentagem"]],
+ ["calculadoras/salario-liquido/index.html",["Exemplo ilustrativo","salário bruto","Memória de cálculo"]],
+ ["en/calculators/porcentagem/index.html",["Worked example","Calculation details","Percentage calculator"]]
+]){
+ if(!fs.existsSync(file)){errors.push("Generated page missing: "+file);continue}
+ const html=fs.readFileSync(file,"utf8");
+ for(const phrase of checks) if(!html.toLowerCase().includes(phrase.toLowerCase())) errors.push(file+" missing expected content: "+phrase);
+ if(html.includes("Quem pesquisa por")) errors.push(file+" contains keyword-stuffed search-intent text");
+}
+const ptPage=fs.existsSync("calculadoras/porcentagem/index.html")?fs.readFileSync("calculadoras/porcentagem/index.html","utf8"):"";
+const enPage=fs.existsSync("en/calculators/porcentagem/index.html")?fs.readFileSync("en/calculators/porcentagem/index.html","utf8"):"";
+if(ptPage.includes("Calculation details")) errors.push("Portuguese calculator page contains English sidebar labels");
+if(enPage.includes("Memória de cálculo")) errors.push("English calculator page contains Portuguese sidebar labels");
 if(errors.length){console.error(errors.join("\n"));process.exit(1)}
-console.log("CalcWorld validation OK: "+c.length+" calculators, "+types.size+" calculator types, 3 locales.");
+console.log("CalcWorld validation OK: "+c.length+" calculators, "+types.size+" calculator types, localized homepage, and generated PT/EN quality checks.");
