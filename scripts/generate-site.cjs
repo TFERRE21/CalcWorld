@@ -186,7 +186,29 @@ function categoryPage(cat,l){
  const items=calculators.filter(x=>x.cat===cat),links=items.map(x=>card(x,l)).join("");
  const desc=esc(cat==="investment"&&l==="pt"?"Simuladores de investimentos online e gratuitos: CDI, Tesouro Direto, CDB, LCI, LCA, fundos imobiliários, ações, criptomoedas, poupança e metas financeiras no CalcWorld.":cat==="investment"&&l==="en"?"Free online investment simulators for CDI, Treasury bonds, CDB, LCI, LCA, real estate funds, stocks, crypto, savings and financial goals on CalcWorld.":l==="pt"?"Calculadoras de "+categoryNames[cat].pt+" online e gratuitas no CalcWorld.":l==="en"?"Free online "+categoryNames[cat].en.toLowerCase()+" calculators and tools on CalcWorld.":"Calculadoras gratuitas de "+categoryNames[cat].es.toLowerCase()+" en CalcWorld.");
  const alts=[["pt-BR",site+catUrl("pt",cat)],["en",site+catUrl("en",cat)]];
- const categoryIntro=cat==="investment"&&l==="pt"?"Encontre simuladores para CDI, Tesouro Direto, CDB, LCI e LCA, fundos imobiliários (FII), ações, criptoativos, poupança, dividend yield, rendimento real e metas de investimento.":cat==="investment"&&l==="en"?"Find simulators for CDI, Treasury bonds, CDB, LCI and LCA, real estate funds, stocks, crypto, savings, dividend yield, real return and investment goals.":d.categoryIntro;
+ const categoryIntros={
+ pt:{
+  math:"Resolva operações e proporções com exemplos simples. Confira a fórmula, as unidades e como interpretar o resultado antes de usar o valor.",
+  finance:"Compare juros, descontos, parcelas e projeções financeiras. As simulações dependem das taxas e dos prazos informados e não representam oferta financeira.",
+  work:"Estime verbas e valores relacionados ao trabalho usando os dados do seu caso. Regras coletivas, datas, descontos e legislação vigente podem mudar o resultado.",
+  business:"Calcule custos, preços, margens, comissões e necessidades de estoque. Confira se todos os custos relevantes e unidades estão incluídos.",
+  daily:"Resolva situações práticas do dia a dia, como combustível, unidades e divisão de despesas. Verifique as unidades e os valores inseridos.",
+  date:"Calcule períodos, prazos e datas. Observe se o cálculo considera dias corridos ou úteis e se feriados locais precisam ser tratados separadamente.",
+  health:"Use os cálculos como referências matemáticas gerais, não como diagnóstico ou recomendação médica individual.",
+  investment:"Encontre simuladores para CDI, Tesouro Direto, CDB, LCI e LCA, fundos imobiliários (FII), ações, criptoativos, poupança, dividend yield, rendimento real e metas de investimento."
+ },
+ en:{
+  math:"Solve arithmetic and proportions with simple examples. Check the formula, units and interpretation before using the result.",
+  finance:"Compare interest, discounts, installments and financial projections. Simulations depend on entered rates and terms and are not financial offers.",
+  work:"Estimate employment-related amounts using your inputs. Collective agreements, dates, deductions and current law can change results.",
+  business:"Calculate costs, prices, margins, commissions and stock needs. Check that relevant costs and units are included.",
+  daily:"Handle practical tasks such as fuel, unit conversion and splitting expenses. Check your units and inputs.",
+  date:"Calculate periods, deadlines and dates. Check whether a calculation uses calendar or business days and whether local holidays need separate treatment.",
+  health:"Use these calculations as general mathematical references, not as an individual diagnosis or medical recommendation.",
+  investment:"Find simulators for CDI, Treasury bonds, CDB, LCI and LCA, real estate funds, stocks, crypto, savings, dividend yield, real return and investment goals."
+ }
+};
+const categoryIntro=categoryIntros[l]?.[cat]||d.categoryIntro;
  const schema=JSON.stringify({"@context":"https://schema.org","@type":"CollectionPage","name":categoryNames[cat][l],"description":desc,"url":canonical});
  return '<!doctype html><html lang="'+d.lang+'"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+name+' — CalcWorld</title><meta name="description" content="'+desc+'"><meta name="robots" content="index,follow"><meta name="theme-color" content="#2563eb"><link rel="canonical" href="'+canonical+'">'+alts.map(([hl,u])=>'<link rel="alternate" hreflang="'+hl+'" href="'+u+'">').join("")+'<link rel="alternate" hreflang="x-default" href="'+site+catUrl("en",cat)+'"><link rel="stylesheet" href="'+p+'styles.css"><meta name="google-adsense-account" content="ca-pub-6472882150880001"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472882150880001" crossorigin="anonymous"></script><script type="application/ld+json">'+schema+'</script></head><body><header class="header"><div class="wrap nav"><a class="brand" href="'+p+'"><img src="'+p+'logo.svg" alt="CalcWorld"></a><div class="page-tools"><button id="themeToggle" class="theme-toggle" type="button" aria-label="Change theme">☾</button><a href="'+p+'" style="color:var(--muted);text-decoration:none;font-weight:700">← '+d.home+'</a></div></div></header><main class="wrap" style="padding:45px 0 80px"><div class="eyebrow">CALCWORLD</div><h1>'+name+'</h1><p class="hero-copy" style="font-size:18px">'+categoryIntro+'</p><section class="section"><div class="grid">'+links+'</div></section></main><script>(function(){var t=localStorage.getItem("cw-theme-v2")||"light";document.documentElement.dataset.theme=t;var b=document.getElementById("themeToggle");if(b){b.textContent=t==="dark"?"☀":"☾";b.onclick=function(){t=document.documentElement.dataset.theme==="dark"?"light":"dark";localStorage.setItem("cw-theme-v2",t);document.documentElement.dataset.theme=t;b.textContent=t==="dark"?"☀":"☾";};}})();</script><script src="/analytics.js"></script></body></html>';
 }
