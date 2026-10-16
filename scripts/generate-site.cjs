@@ -158,8 +158,22 @@ function seoExtra(c,l){
   pt?["Como usar esta calculadora","Informe os dados solicitados, confira as unidades e períodos e gere o relatório para ver o resultado e a memória de cálculo.","Use o resultado como referência e confira regras específicas quando o cálculo depender de legislação, contrato ou instituição."]:
      ["How to use this calculator","Enter the requested values, check units and periods, and generate the report to see the result and calculation details.","Use the result as a reference and verify specific rules when the calculation depends on law, contracts or institutions."]
  );
- const faq=pt?[["O resultado é oficial?","Não. É uma estimativa informativa e pode depender das regras e dados do caso concreto."],["Posso salvar o resultado?","Sim. O relatório pode ser impresso ou salvo em PDF pelo navegador."],["Funciona no celular?","Sim. A página é responsiva e pode ser usada em celular, tablet ou computador."]]:[["Is the result official?","No. It is an informational estimate and may depend on the rules and data of the specific case."],["Can I save the result?","Yes. The report can be printed or saved as a PDF from the browser."],["Does it work on mobile?","Yes. The page is responsive and works on phones, tablets and desktops."]];
- return '<section class="seo-guide"><h2>'+esc(x[0])+'</h2><p>'+esc(x[1])+'</p><p>'+esc(x[2])+'</p><h2>'+(pt?"Perguntas frequentes":"Frequently asked questions")+'</h2><div class="seo-faq">'+faq.map(q=>'<details><summary>'+esc(q[0])+'</summary><p>'+esc(q[1])+'</p></details>').join("")+'</div></section>';
+ const categoryAdvice={
+  math:pt?"Confira a ordem das operações e mantenha as unidades consistentes.":"Check operation order and keep units consistent.",
+  finance:pt?"Teste taxas e prazos diferentes e observe o custo ou montante total. A projeção depende das premissas informadas.":"Test different rates and terms and compare total cost or value. The projection depends on the assumptions entered.",
+  work:pt?"Confira datas, jornada, remuneração e regras do vínculo. Situações individuais podem alterar o cálculo.":"Check dates, schedule, remuneration and employment rules. Individual circumstances may change the calculation.",
+  business:pt?"Inclua custos, taxas, perdas e impostos relevantes antes de usar o resultado para definir preços ou metas.":"Include relevant costs, fees, losses and taxes before using the result to set prices or targets.",
+  daily:pt?"Confirme as unidades e os valores inseridos; resultados aproximados podem variar com as condições reais.":"Confirm units and entered values; estimates can vary with real-world conditions.",
+  date:pt?"Confira o calendário, o período e a diferença entre dias corridos e úteis quando aplicável.":"Check the calendar and period, including the distinction between calendar and business days where applicable.",
+  health:pt?"Use o resultado como referência matemática geral, não como diagnóstico ou recomendação médica individual.":"Use the result as a general mathematical reference, not an individual diagnosis or medical recommendation.",
+  investment:pt?"Compare risco, liquidez, impostos, custos e inflação. A simulação não garante rentabilidade futura.":"Compare risk, liquidity, taxes, costs and inflation. The simulation does not guarantee future returns."
+ };
+ const x=special[c.type]||[
+  pt?"Como interpretar o resultado":"Interpreting the result",
+  pt?"A ferramenta "+c.title.pt.toLowerCase()+" usa os dados informados para produzir uma estimativa. "+categoryAdvice[c.cat]:"The "+c.title.en.toLowerCase()+" uses your inputs to produce an estimate. "+categoryAdvice[c.cat],
+  pt?"Confira a fórmula e o exemplo desta página e valide os dados de entrada antes de usar o resultado.":"Review this page's formula and example, and verify your inputs before using the result."
+ ];
+ return '<section class="seo-guide"><h2>'+esc(x[0])+'</h2><p>'+esc(x[1])+'</p>'+(x[2]?'<p>'+esc(x[2])+'</p>':'')+'</section>';
 }
 function seoTitle(c,l){
   if(l!=="pt") return c.title[l];
