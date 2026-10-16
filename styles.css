@@ -362,3 +362,6 @@ html[data-theme="dark"] .catalog-head{background:var(--soft)}
 @media(max-width:900px){.guide-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.guide-grid{grid-template-columns:1fr}.seo-guide{padding-top:24px}.seo-guide h1{font-size:34px}.guide-actions{align-items:stretch;flex-direction:column}.guide-actions .btn,.guide-actions .text-link{text-align:center;width:100%}}
 [data-theme="dark"] .seo-guide details{background:var(--surface)}
+
+/* Homepage editorial section: readable, non-repetitive guidance */
+.search-intent-block{padding:34px 0 42px}.search-intent-block>p{max-width:900px;color:var(--muted);font-size:16px}.termination-checklist{max-width:900px;margin:20px 0;padding:20px 24px;background:var(--surface);border:1px solid var(--line);border-radius:16px}.termination-checklist h3{margin:0 0 10px;font-size:18px}.termination-checklist ul{margin:0;padding-left:22px}.termination-checklist li{margin:7px 0;color:var(--text)}
