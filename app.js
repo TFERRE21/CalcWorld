@@ -12,10 +12,8 @@ Object.assign(T.en,{searchBtn:"Search",adSpace:"Advertising space",trustCalc:"�
 function detectLanguage(){
  const saved=localStorage.getItem("cw-lang");
  if(saved==="pt-BR"||saved==="en")return saved;
- const locales=[...(navigator.languages||[]),navigator.language||""].map(x=>String(x).toLowerCase());
- if(locales.some(x=>x.startsWith("pt")))return "pt-BR";
- try{const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"";if(tz.startsWith("America/")&&/Sao_Paulo|Brasilia|Belem|Fortaleza|Recife|Manaus|Cuiaba|Campo_Grande|Porto_Velho|Boa_Vista|Rio_Branco|Araguaina|Maceio|Bahia|Noronha/.test(tz))return "pt-BR";}catch(e){}
- return "en";
+ // CalcWorld is currently Brazil-first: new visitors and crawlers receive Portuguese by default.
+ return "pt-BR";
 }
 let lang=detectLanguage(),cat="all";const L=()=>lang.startsWith("pt")?"pt":"en";
 function text(){const l=L();document.querySelectorAll("[data-t]").forEach(e=>{if(T[l][e.dataset.t])e.innerHTML=T[l][e.dataset.t]});document.querySelectorAll("[data-placeholder]").forEach(e=>e.placeholder=T[l][e.dataset.placeholder]);document.documentElement.lang=lang;document.title=l==="en"?"CalcWorld — Free Online Calculators":l==="pt"?"CalcWorld — Calculadoras online grátis":"CalcWorld — Calculadoras online gratis";updateQuick(l)}
