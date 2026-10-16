@@ -37,16 +37,18 @@ jobs:
             git commit -m "chore: update official legal data"
             git push
           fi
-      - name: Validate server and market JavaScript
+      - name: Validate JavaScript syntax
         run: |
           node --check server.js
           node --check market.js
-      - name: Validate calculator catalog
-        run: node scripts/validate-site.cjs
+          node --check app.js
+          node --check scripts/generate-site.cjs
       - name: Remove deprecated Spanish generated pages
         run: rm -rf es
       - name: Generate PT and English calculator pages
         run: node scripts/generate-site.cjs
+      - name: Validate calculator catalog and generated content
+        run: node scripts/validate-site.cjs
       - name: Commit generated pages for external hosting
         run: |
           git config user.name "github-actions[bot]"
