@@ -154,10 +154,6 @@ function seoExtra(c,l){
   compareInvestments:pt?["Compare dois investimentos","Coloque duas taxas e impostos em um cenário matemático comum para observar a diferença no valor acumulado.","Além da rentabilidade, compare liquidez, risco, custos, carência e tributação aplicável."]:["Compare two investments","Place two rates and taxes in a common mathematical scenario to observe the accumulated difference.","Besides return, compare liquidity, risk, costs, lock-up and applicable taxes."],
   equivalentRate:pt?["Converta taxas de investimento","Converta uma taxa anual em mensal ou mensal em anual usando capitalização composta.","A equivalência matemática não considera impostos, taxas ou outras condições do produto."]:["Convert investment rates","Convert annual to monthly or monthly to annual rates using compound capitalization.","Mathematical equivalence does not include taxes, fees or product conditions."]
  };
- const x=special[c.type]||(
-  pt?["Como usar esta calculadora","Informe os dados solicitados, confira as unidades e períodos e gere o relatório para ver o resultado e a memória de cálculo.","Use o resultado como referência e confira regras específicas quando o cálculo depender de legislação, contrato ou instituição."]:
-     ["How to use this calculator","Enter the requested values, check units and periods, and generate the report to see the result and calculation details.","Use the result as a reference and verify specific rules when the calculation depends on law, contracts or institutions."]
- );
  const categoryAdvice={
   math:pt?"Confira a ordem das operações e mantenha as unidades consistentes.":"Check operation order and keep units consistent.",
   finance:pt?"Teste taxas e prazos diferentes e observe o custo ou montante total. A projeção depende das premissas informadas.":"Test different rates and terms and compare total cost or value. The projection depends on the assumptions entered.",
