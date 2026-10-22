@@ -41,8 +41,8 @@ const sitemap=fs.existsSync("sitemap.xml")?fs.readFileSync("sitemap.xml","utf8")
 if(!sitemap) errors.push("sitemap.xml missing after generation");
 if(sitemap.includes("<loc>https://calcworld.com.br/robots.txt</loc>")) errors.push("robots.txt must not be listed in sitemap.xml");
 if(sitemap.includes("<loc>https://calcworld.com.br/ads.txt</loc>")) errors.push("ads.txt must not be listed in sitemap.xml");
-if(/<loc>[^<]*\\?[^<]*<\\/loc>/.test(sitemap)) errors.push("Sitemap must not contain query-string URLs");
-const sitemapUrls=[...sitemap.matchAll(/<loc>([^<]+)<\\/loc>/g)].map(m=>m[1]);
+const sitemapUrls=sitemap.split("<loc>").slice(1).map(entry=>entry.split("</loc>")[0]);
+if(sitemapUrls.some(url=>url.includes("?"))) errors.push("Sitemap must not contain query-string URLs");
 if(new Set(sitemapUrls).size!==sitemapUrls.length) errors.push("Sitemap contains duplicate URLs");
 const ptPage=fs.existsSync("calculadoras/porcentagem/index.html")?fs.readFileSync("calculadoras/porcentagem/index.html","utf8"):"";
 const enPage=fs.existsSync("en/calculators/porcentagem/index.html")?fs.readFileSync("en/calculators/porcentagem/index.html","utf8"):"";
