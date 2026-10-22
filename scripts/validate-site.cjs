@@ -37,6 +37,13 @@ for(const [file,checks] of [
  for(const phrase of checks) if(!html.toLowerCase().includes(phrase.toLowerCase())) errors.push(file+" missing expected content: "+phrase);
  if(html.includes("Quem pesquisa por")) errors.push(file+" contains keyword-stuffed search-intent text");
 }
+const sitemap=fs.existsSync("sitemap.xml")?fs.readFileSync("sitemap.xml","utf8"):"";
+if(!sitemap) errors.push("sitemap.xml missing after generation");
+if(sitemap.includes("<loc>https://calcworld.com.br/robots.txt</loc>")) errors.push("robots.txt must not be listed in sitemap.xml");
+if(sitemap.includes("<loc>https://calcworld.com.br/ads.txt</loc>")) errors.push("ads.txt must not be listed in sitemap.xml");
+const sitemapUrls=sitemap.split("<loc>").slice(1).map(entry=>entry.split("</loc>")[0]);
+if(sitemapUrls.some(url=>url.includes("?"))) errors.push("Sitemap must not contain query-string URLs");
+if(new Set(sitemapUrls).size!==sitemapUrls.length) errors.push("Sitemap contains duplicate URLs");
 const ptPage=fs.existsSync("calculadoras/porcentagem/index.html")?fs.readFileSync("calculadoras/porcentagem/index.html","utf8"):"";
 const enPage=fs.existsSync("en/calculators/porcentagem/index.html")?fs.readFileSync("en/calculators/porcentagem/index.html","utf8"):"";
 if(ptPage.includes("Calculation details")) errors.push("Portuguese calculator page contains English sidebar labels");

@@ -251,7 +251,8 @@ for(const cat of Object.keys(categoryNames)) for(const l of ["pt","en"]){
  const d=localeData[l],dir=l==="pt"?path.join(root,d.categoryFolder,cat):path.join(root,l,d.categoryFolder,cat);
  fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,"index.html"),categoryPage(cat,l));
 }
-const urls=[site+"/",site+"/privacy.html",site+"/terms.html",site+"/legislacao.html",site+"/robots.txt",site+"/ads.txt",site+"/investimentos.html"];
+// Only canonical, indexable HTML pages belong in the sitemap. robots.txt and ads.txt are discovery/configuration files, not landing pages.
+const urls=[site+"/",site+"/privacy.html",site+"/terms.html",site+"/legislacao.html",site+"/investimentos.html"];
 for(const c of calculators) for(const l of ["pt","en"]) urls.push(site+calcUrl(l,c.slug));
 for(const cat of Object.keys(categoryNames)) for(const l of ["pt","en"]) urls.push(site+catUrl(l,cat));
 // Important SEO hubs and editorial pages are public pages too; keep them in the sitemap
