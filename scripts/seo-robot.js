@@ -67,9 +67,9 @@ function createSitemap(){
  }
  const sorted=Array.from(urls).sort();
  const day=new Date().toISOString().slice(0,10);
- const xml='<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n'+sorted.map(u=>'  <url><loc>'+u+'</loc><lastmod>'+day+'</lastmod></url>').join("\\n")+'\\n</urlset>\\n';
+ const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+sorted.map(u=>'  <url><loc>'+u+'</loc><lastmod>'+day+'</lastmod></url>').join("\n")+'\n</urlset>\n';
  fs.writeFileSync(sitemapPath,xml);
- fs.writeFileSync(path.join(ROOT,"robots.txt"),"User-agent: *\\nAllow: /\\nDisallow: /admin/\\n\\nSitemap: "+SITE+"/sitemap.xml\\n");
+ fs.writeFileSync(path.join(ROOT,"robots.txt"),"User-agent: *\nAllow: /\nDisallow: /admin/\n\nSitemap: "+SITE+"/sitemap.xml\n");
  return sorted.length;
 }
 async function main(){
