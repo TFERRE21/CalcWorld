@@ -50,6 +50,7 @@ function createSitemap(){
    const u=match[1];
    let pathname;
    try{pathname=new URL(u).pathname}catch{continue}
+   if(!(pathname.endsWith("/")||pathname.endsWith(".html")))continue;
    let rel=decodeURIComponent(pathname.replace(/^\//,""));
    if(!rel||pathname.endsWith("/"))rel=path.posix.join(rel,"index.html");
    const resolved=path.resolve(ROOT,rel);
