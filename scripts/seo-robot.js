@@ -41,37 +41,35 @@ function htmlFiles(dir,base){
  return out;
 }
 function createSitemap(){
- const files=htmlFiles(ROOT,"").filter(p=>!p.split("/").some(x=>x.startsWith(".")||x==="node_modules"||x==="seo-data"||x==="scripts"||x==="admin"));
- const urls=new Set();
- for(const p of files){
-  if(["404.html"].includes(p)||p.endsWith("/404.html"))continue;
-  let url=SITE+"/"+p.split(path.sep).join("/");
-  if(p==="index.html")url=SITE+"/";
-  else if(p.endsWith("/index.html"))url=SITE+"/"+p.slice(0,-"index.html".length);
-  if(/\.(html|xml|txt|json)$/i.test(url)||url.endsWith("/")) {
-    if(url.endsWith(".xml")||url.endsWith(".txt")||url.endsWith(".json"))continue;
-    urls.add(url);
-  }
- }
- // Preserve the current sitemap URLs if their pages are still real and present.
  const sitemapPath=path.join(ROOT,"sitemap.xml");
+ const urls=new Set();
+ // Preserve all current sitemap URLs when their underlying page still exists.
  if(fs.existsSync(sitemapPath)){
   const old=fs.readFileSync(sitemapPath,"utf8");
   for(const match of old.matchAll(/<loc>(https:\/\/calcworld\.com\.br[^<]+)<\/loc>/g)){
    const u=match[1];
-   const pathname=new URL(u).pathname;
+   let pathname;
+   try{pathname=new URL(u).pathname}catch{continue}
    let rel=decodeURIComponent(pathname.replace(/^\//,""));
    if(!rel||pathname.endsWith("/"))rel=path.posix.join(rel,"index.html");
-   if(fs.existsSync(path.join(ROOT,rel))&&fs.statSync(path.join(ROOT,rel)).isFile())urls.add(u);
+   const resolved=path.resolve(ROOT,rel);
+   if(resolved.startsWith(ROOT+path.sep)&&fs.existsSync(resolved)&&fs.statSync(resolved).isFile())urls.add(u);
   }
+ }
+ // Add real HTML pages that exist in the working tree. Never create guessed URLs.
+ const files=htmlFiles(ROOT,"").filter(p=>!p.split("/").some(x=>x.startsWith(".")||x==="node_modules"||x==="seo-data"||x==="scripts"||x==="admin"));
+ for(const p of files){
+  if(p==="404.html"||p.endsWith("/404.html"))continue;
+  let u=SITE+"/"+p.split(path.sep).join("/");
+  if(p==="index.html")u=SITE+"/";
+  else if(p.endsWith("/index.html"))u=SITE+"/"+p.slice(0,-"index.html".length);
+  if(u.endsWith(".html")||u.endsWith("/"))urls.add(u);
  }
  const sorted=Array.from(urls).sort();
  const day=new Date().toISOString().slice(0,10);
- const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+sorted.map(u=>'  <url><loc>'+u+'</loc><lastmod>'+day+'</lastmod></url>').join("\n")+'\n</urlset>\n';
+ const xml='<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n'+sorted.map(u=>'  <url><loc>'+u+'</loc><lastmod>'+day+'</lastmod></url>').join("\\n")+'\\n</urlset>\\n';
  fs.writeFileSync(sitemapPath,xml);
- const robotsPath=path.join(ROOT,"robots.txt");
- let robots="User-agent: *\nAllow: /\nDisallow: /admin/\n\nSitemap: "+SITE+"/sitemap.xml\n";
- fs.writeFileSync(robotsPath,robots);
+ fs.writeFileSync(path.join(ROOT,"robots.txt"),"User-agent: *\\nAllow: /\\nDisallow: /admin/\\n\\nSitemap: "+SITE+"/sitemap.xml\\n");
  return sorted.length;
 }
 async function main(){
