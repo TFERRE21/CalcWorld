@@ -57,7 +57,7 @@ function createSitemap(){
   }
  }
  // Add real HTML pages that exist in the working tree. Never create guessed URLs.
- const files=htmlFiles(ROOT,"").filter(p=>!p.split("/").some(x=>x.startsWith(".")||x==="node_modules"||x==="seo-data"||x==="scripts"||x==="admin"));
+ const files=htmlFiles(ROOT,"").filter(p=>!p.split("/").some(x=>x.startsWith(".")||x==="node_modules"||x==="seo-data"||x==="scripts"||x.startsWith("admin")));
  for(const p of files){
   if(p==="404.html"||p.endsWith("/404.html"))continue;
   let u=SITE+"/"+p.split(path.sep).join("/");
