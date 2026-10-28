@@ -1083,6 +1083,45 @@ setInterval(() => {
   for (const [key, item] of researchCache) if (item.expiresAt < now) researchCache.delete(key);
 }, 15 * 60 * 1000).unref();
 
+// Persistent SEO research worker; runs one cycle at boot and repeats every 30 minutes.
+const SEO_ROBOT_ENABLED = process.env.SEO_ROBOT_ENABLED !== "false";
+const SEO_INTERVAL_MINUTES = Math.max(5, Number(process.env.SEO_INTERVAL_MINUTES) || 30);
+let seoRobotChild = null;
+let seoRobotTimer = null;
+let seoRobotStopping = false;
+function runSeoRobotCycle() {
+  if (!SEO_ROBOT_ENABLED || seoRobotStopping || seoRobotChild) return;
+  const robotPath = path.join(ROOT, "scripts", "seo-robot.js");
+  if (!fs.existsSync(robotPath)) {
+    console.error("[seo-worker] robot script not found:", robotPath);
+    return;
+  }
+  console.log("[seo-worker] cycle starting");
+  seoRobotChild = require("child_process").spawn(process.execPath, [robotPath], {
+    cwd: ROOT,
+    env: { ...process.env, SEO_DATA_DIR: process.env.SEO_DATA_DIR || path.join(ROOT, "seo-data") },
+    stdio: ["ignore", "inherit", "inherit"]
+  });
+  seoRobotChild.on("error", error => console.error("[seo-worker] launch error:", error.message));
+  seoRobotChild.on("exit", (code, signal) => {
+    console.log("[seo-worker] cycle finished", JSON.stringify({ code, signal, nextMinutes: SEO_INTERVAL_MINUTES }));
+    seoRobotChild = null;
+  });
+}
+function stopSeoRobot() {
+  seoRobotStopping = true;
+  if (seoRobotTimer) clearInterval(seoRobotTimer);
+  if (seoRobotChild) seoRobotChild.kill("SIGTERM");
+}
+if (SEO_ROBOT_ENABLED) {
+  console.log("[seo-worker] persistent SEO worker online; every " + SEO_INTERVAL_MINUTES + " minutes");
+  runSeoRobotCycle();
+  seoRobotTimer = setInterval(runSeoRobotCycle, SEO_INTERVAL_MINUTES * 60 * 1000);
+  if (typeof seoRobotTimer.unref === "function") seoRobotTimer.unref();
+  process.on("SIGTERM", stopSeoRobot);
+  process.on("SIGINT", stopSeoRobot);
+}
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`CalcWorld running on port ${PORT}`);
 });
