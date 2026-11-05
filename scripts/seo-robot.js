@@ -51,7 +51,7 @@ function createSitemap(){
   // receives a separate editorial and translation review.
   if(pathname==="/en"||pathname.startsWith("/en/"))return;
   if(!(pathname.endsWith("/")||pathname.endsWith(".html")))return;
-  let rel=decodeURIComponent(pathname.replace(/^\\//,""));
+  let rel=decodeURIComponent(pathname.replace(/^\/+/,""));
   if(!rel||pathname.endsWith("/"))rel=path.posix.join(rel,"index.html");
   const resolved=path.resolve(ROOT,rel);
   if(!resolved.startsWith(ROOT+path.sep)||!fs.existsSync(resolved)||!fs.statSync(resolved).isFile())return;
@@ -63,7 +63,10 @@ function createSitemap(){
  // translated duplicates that have not passed the editorial review.
  if(fs.existsSync(sitemapPath)){
   const old=fs.readFileSync(sitemapPath,"utf8");
-  for(const match of old.matchAll(/<loc>(https:\\/\\/calcworld\\.com\\.br[^<]+)<\\/loc>/g))addPageUrl(match[1]);
+  for(const match of old.matchAll(/<loc>(.*?)<\/loc>/g)){
+   const url=match[1];
+   if(url.startsWith(SITE+"/"))addPageUrl(url);
+  }
  }
  // Discover only pages that physically exist. Never invent URLs.
  const files=htmlFiles(ROOT,"").filter(p=>!p.split("/").some(x=>x.startsWith(".")||x==="node_modules"||x==="seo-data"||x==="scripts"||x.startsWith("admin")||x==="en"));
@@ -75,9 +78,9 @@ function createSitemap(){
   addPageUrl(url);
  }
  const sorted=Array.from(entries.keys()).sort();
- const xml='<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n'+sorted.map(url=>'  <url><loc>'+url+'</loc><lastmod>'+entries.get(url)+'</lastmod></url>').join("\\n")+'\\n</urlset>\\n';
+ const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+sorted.map(url=>'  <url><loc>'+url+'</loc><lastmod>'+entries.get(url)+'</lastmod></url>').join("\n")+'\n</urlset>\n';
  fs.writeFileSync(sitemapPath,xml);
- fs.writeFileSync(path.join(ROOT,"robots.txt"),"User-agent: *\\nAllow: /\\nDisallow: /admin/\\n\\nSitemap: "+SITE+"/sitemap.xml\\n");
+ fs.writeFileSync(path.join(ROOT,"robots.txt"),"User-agent: *\nAllow: /\nDisallow: /admin/\n\nSitemap: "+SITE+"/sitemap.xml\n");
  return sorted.length;
 }
 async function main(){
