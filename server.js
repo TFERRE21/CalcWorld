@@ -988,6 +988,14 @@ app.get("/{*splat}", (req, res, next) => {
   try {
     if (req.path.startsWith("/api/") || req.path.startsWith("/admin")) return next();
 
+    // Do not inject advertising into legal, contact, utility or error pages.
+    // These pages serve trust/navigation purposes rather than editorial content.
+    const noAdPaths = new Set([
+      "/privacy.html", "/terms.html", "/contato.html", "/sobre.html",
+      "/404.html", "/robots.txt", "/ads.txt"
+    ]);
+    if (noAdPaths.has(String(req.path || "").toLowerCase())) return next();
+
     let relative = decodeURIComponent(req.path || "/").replace(/^\/+/, "");
     if (!relative) relative = "index.html";
     if (relative.endsWith("/")) relative += "index.html";
