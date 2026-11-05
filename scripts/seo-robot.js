@@ -42,35 +42,42 @@ function htmlFiles(dir,base){
 }
 function createSitemap(){
  const sitemapPath=path.join(ROOT,"sitemap.xml");
- const urls=new Set();
- // Preserve all current sitemap URLs when their underlying page still exists.
+ const entries=new Map();
+ function addPageUrl(url){
+  let pathname;
+  try{pathname=new URL(url).pathname}catch{return}
+  // Keep the sitemap focused on the primary Brazilian Portuguese experience.
+  // English URLs remain accessible, but are not promoted until their content
+  // receives a separate editorial and translation review.
+  if(pathname==="/en"||pathname.startsWith("/en/"))return;
+  if(!(pathname.endsWith("/")||pathname.endsWith(".html")))return;
+  let rel=decodeURIComponent(pathname.replace(/^\\//,""));
+  if(!rel||pathname.endsWith("/"))rel=path.posix.join(rel,"index.html");
+  const resolved=path.resolve(ROOT,rel);
+  if(!resolved.startsWith(ROOT+path.sep)||!fs.existsSync(resolved)||!fs.statSync(resolved).isFile())return;
+  if(!resolved.toLowerCase().endsWith(".html"))return;
+  const modified=fs.statSync(resolved).mtime.toISOString().slice(0,10);
+  entries.set(url,modified);
+ }
+ // Keep existing, real HTML pages; discard stale URLs, non-HTML files and
+ // translated duplicates that have not passed the editorial review.
  if(fs.existsSync(sitemapPath)){
   const old=fs.readFileSync(sitemapPath,"utf8");
-  for(const match of old.matchAll(/<loc>(https:\/\/calcworld\.com\.br[^<]+)<\/loc>/g)){
-   const u=match[1];
-   let pathname;
-   try{pathname=new URL(u).pathname}catch{continue}
-   if(!(pathname.endsWith("/")||pathname.endsWith(".html")))continue;
-   let rel=decodeURIComponent(pathname.replace(/^\//,""));
-   if(!rel||pathname.endsWith("/"))rel=path.posix.join(rel,"index.html");
-   const resolved=path.resolve(ROOT,rel);
-   if(resolved.startsWith(ROOT+path.sep)&&fs.existsSync(resolved)&&fs.statSync(resolved).isFile())urls.add(u);
-  }
+  for(const match of old.matchAll(/<loc>(https:\\/\\/calcworld\\.com\\.br[^<]+)<\\/loc>/g))addPageUrl(match[1]);
  }
- // Add real HTML pages that exist in the working tree. Never create guessed URLs.
- const files=htmlFiles(ROOT,"").filter(p=>!p.split("/").some(x=>x.startsWith(".")||x==="node_modules"||x==="seo-data"||x==="scripts"||x.startsWith("admin")));
+ // Discover only pages that physically exist. Never invent URLs.
+ const files=htmlFiles(ROOT,"").filter(p=>!p.split("/").some(x=>x.startsWith(".")||x==="node_modules"||x==="seo-data"||x==="scripts"||x.startsWith("admin")||x==="en"));
  for(const p of files){
   if(p==="404.html"||p.endsWith("/404.html"))continue;
-  let u=SITE+"/"+p.split(path.sep).join("/");
-  if(p==="index.html")u=SITE+"/";
-  else if(p.endsWith("/index.html"))u=SITE+"/"+p.slice(0,-"index.html".length);
-  if(u.endsWith(".html")||u.endsWith("/"))urls.add(u);
+  let url=SITE+"/"+p.split(path.sep).join("/");
+  if(p==="index.html")url=SITE+"/";
+  else if(p.endsWith("/index.html"))url=SITE+"/"+p.slice(0,-"index.html".length);
+  addPageUrl(url);
  }
- const sorted=Array.from(urls).sort();
- const day=new Date().toISOString().slice(0,10);
- const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+sorted.map(u=>'  <url><loc>'+u+'</loc><lastmod>'+day+'</lastmod></url>').join("\n")+'\n</urlset>\n';
+ const sorted=Array.from(entries.keys()).sort();
+ const xml='<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n'+sorted.map(url=>'  <url><loc>'+url+'</loc><lastmod>'+entries.get(url)+'</lastmod></url>').join("\\n")+'\\n</urlset>\\n';
  fs.writeFileSync(sitemapPath,xml);
- fs.writeFileSync(path.join(ROOT,"robots.txt"),"User-agent: *\nAllow: /\nDisallow: /admin/\n\nSitemap: "+SITE+"/sitemap.xml\n");
+ fs.writeFileSync(path.join(ROOT,"robots.txt"),"User-agent: *\\nAllow: /\\nDisallow: /admin/\\n\\nSitemap: "+SITE+"/sitemap.xml\\n");
  return sorted.length;
 }
 async function main(){
