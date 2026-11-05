@@ -251,7 +251,7 @@ for(const cat of Object.keys(categoryNames)) for(const l of ["pt","en"]){
  const d=localeData[l],dir=l==="pt"?path.join(root,d.categoryFolder,cat):path.join(root,l,d.categoryFolder,cat);
  fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,"index.html"),categoryPage(cat,l));
 }
-const urls=[site+"/",site+"/privacy.html",site+"/terms.html",site+"/legislacao.html",site+"/robots.txt",site+"/ads.txt",site+"/investimentos.html"];
+const urls=[site+"/",site+"/privacy.html",site+"/terms.html",site+"/legislacao.html",site+"/investimentos.html"];
 for(const c of calculators) for(const l of ["pt","en"]) urls.push(site+calcUrl(l,c.slug));
 for(const cat of Object.keys(categoryNames)) for(const l of ["pt","en"]) urls.push(site+catUrl(l,cat));
 // Important SEO hubs and editorial pages are public pages too; keep them in the sitemap
@@ -282,10 +282,16 @@ for(const cat of Object.keys(categoryNames)) for(const l of ["pt","en"]) urls.pu
   "guias/como-calcular-hora-extra/",
   "guias/juros-compostos-como-calcular/",
   "guias/financiamento-price-sac/",
-  "guias/porcentagem-de-aumento-como-calcular/",
+
   "guias/dias-uteis-como-calcular/",
   "guias/quanto-rende-1000-cdi/",
-  "guias/quanto-rende-10000-poupanca/"
+  "guias/quanto-rende-10000-poupanca/",
+  "guias/como-calcular-porcentagem-de-aumento/",
+  "guias/como-calcular-regra-de-tres/",
+  "guias/como-calcular-porcentagem-de-desconto/",
+  "guias/como-calcular-media-aritmetica/",
+  "guias/como-calcular-juros-simples/",
+  "guias/como-calcular-imc/"
 ].forEach(p=>urls.push(site+"/"+p));
 const xml='<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+urls.map(u=>'<url><loc>'+u+'</loc><lastmod>'+buildDate+'</lastmod></url>').join("")+'</urlset>';
 fs.writeFileSync(path.join(root,"sitemap.xml"),xml);
